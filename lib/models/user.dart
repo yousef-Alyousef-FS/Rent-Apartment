@@ -9,6 +9,7 @@ class User {
   String? _token;
 
   String? get token => _token;
+  set token(String? t) => _token;
 
   User({
     this.id,

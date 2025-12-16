@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 import 'package:plproject/firebase_options.dart';
-import 'package:plproject/screens/auth/login.dart';
+import 'package:plproject/providers/auth_provider.dart';
+import 'package:plproject/screens/auth/auth_wrapper.dart'; // Import the new wrapper
 import 'package:plproject/theme/app_theme.dart';
 
 void main() async {
-  // Ensure that Flutter bindings are initialized before any async operations.
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Try to initialize Firebase. If it fails (e.g., firebase_options.dart is missing),
-  // the app will still run, but Firebase services will be unavailable.
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -27,11 +26,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: "Rent Apartments",
-      theme: AppTheme.lightTheme, // Apply the light theme
-      home: const LoginScreen(),
+    return ChangeNotifierProvider(
+      create: (context) => AuthProvider(),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: "Rent Apartments",
+        theme: AppTheme.lightTheme,
+        home: const AuthWrapper(), // Set the AuthWrapper as the home widget
+      ),
     );
   }
 }

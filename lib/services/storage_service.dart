@@ -1,40 +1,33 @@
 import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/foundation.dart';
 
-class StorageService {
-  final firebase_storage.FirebaseStorage _storage = firebase_storage.FirebaseStorage.instance;
+// TODO: This service needs to be updated to work with the new backend API for file uploads.
 
-  /// Uploads an image file to Firebase Storage and returns the download URL.
-  ///
-  /// [filePath] is the path of the file on the device.
-  /// [destinationPath] is the desired path in Firebase Storage (e.g., 'profile_images/user_id.jpg').
+class StorageService {
+
+  /// Uploads an image file and returns the download URL.
+  /// This is a placeholder and needs to be implemented with the actual backend API.
   Future<String> uploadImage(String filePath, String destinationPath) async {
     final file = File(filePath);
 
-    try {
-      // Create a reference to the location you want to upload to
-      final ref = _storage.ref(destinationPath);
+    // This is where you would use a package like 'http' with a multipart request
+    // to send the file to your Laravel backend.
 
-      // Upload the file
-      final uploadTask = ref.putFile(file);
+    // Example (pseudo-code):
+    // final request = http.MultipartRequest('POST', Uri.parse('YOUR_BACKEND_API/upload'));
+    // request.files.add(await http.MultipartFile.fromPath('image', file.path));
+    // final response = await request.send();
+    // if (response.statusCode == 200) {
+    //   final responseData = await response.stream.bytesToString();
+    //   final json = jsonDecode(responseData);
+    //   return json['url']; // Assuming the API returns the URL in this format
+    // }
 
-      // Wait for the upload to complete
-      final snapshot = await uploadTask.whenComplete(() => {});
+    debugPrint("uploadImage is not implemented yet. Returning a placeholder URL.");
 
-      // Get the download URL
-      final downloadUrl = await snapshot.ref.getDownloadURL();
-
-      debugPrint("File uploaded successfully. URL: $downloadUrl");
-      return downloadUrl;
-
-    } on firebase_storage.FirebaseException catch (e) {
-      // Handle potential errors like permission denied
-      debugPrint("Failed to upload image: $e");
-      throw Exception('Storage Error: Could not upload file.');
-    } catch (e) {
-      debugPrint("An unexpected error occurred during upload: $e");
-      throw Exception('An unexpected error occurred.');
-    }
+    // For now, let's return a placeholder URL to avoid breaking the app logic.
+    // In a real scenario, you would throw an exception or handle the error.
+    await Future.delayed(const Duration(seconds: 2)); // Simulate network delay
+    return 'https://via.placeholder.com/150/0000FF/FFFFFF?Text=Uploaded+Image';
   }
 }

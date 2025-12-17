@@ -10,17 +10,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  firebase_core: ^4.2.1
+
+  # Core packages
   cupertino_icons: ^1.0.8
-  cloud_firestore: ^6.1.0
-  firebase_storage: ^13.0.4
-  firebase_messaging: ^16.0.4
-  firebase_auth: ^6.1.2
-  google_sign_in: ^7.2.0
   http: ^1.2.1
   provider: ^6.1.2
   shared_preferences: ^2.2.3
-  image_picker: ^1.1.2 # Added for picking images
+  image_picker: ^1.1.2
+
 
 dev_dependencies:
   flutter_test:

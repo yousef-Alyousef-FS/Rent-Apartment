@@ -1,84 +1,82 @@
 class User {
   int? id;
-  String? firstName;
-  String? lastName;
+  String? first_name;
+  String? last_name;
   DateTime? dateOfBirth;
   String? phone;
-  String? personalImagePath;
-  String? idCardImagePath;
+  String? profile_image;
+  String? id_card_image;
   String? _token;
-
+  String? password;
   String? get token => _token;
-  set token(String? t) => _token;
+  set token(String? t) => _token = t;
 
   User({
     this.id,
-    this.firstName, this.lastName,
-    this.dateOfBirth, this.phone,
-    this.personalImagePath, this.idCardImagePath
-  });
+    this.first_name,
+    this.last_name,
+    this.dateOfBirth,
+    this.phone,
+    this.profile_image,
+    this.id_card_image,
+    this.password,
+    String? token, // Allow passing token in constructor
+  }) {
+    _token = token;
+  }
 
   factory User.fromJson(Map<String, dynamic> json) {
-    final user = User(
+    return User(
       id: json['id'] as int?,
-      firstName: json['firstName'] as String?,
-      lastName: json['lastName'] as String?,
-      dateOfBirth: json['dateOfBirth'] != null
-          ? DateTime.tryParse(json['dateOfBirth'] as String)
-          : null,
+      first_name: json['first_name'] as String?,
+      last_name: json['last_name'] as String?,
+      dateOfBirth: json['dateOfBirth'] != null ? DateTime.tryParse(json['dateOfBirth']) : null,
       phone: json['phone'] as String?,
-      personalImagePath: json['personalImagePath'] as String?,
-      idCardImagePath: json['idCardImagePath'] as String?,
+      profile_image: json['profile_image'] as String?,
+      id_card_image: json['id_card_image'] as String?,
+      token: json['token'] as String?,
     );
-
-    user._token = json['token'] as String?;
-    return user;
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'firstName': firstName,
-      'lastName': lastName,
+      'first_name': first_name,
+      'last_name': last_name,
       'dateOfBirth': dateOfBirth?.toIso8601String(),
       'phone': phone,
-      'personalImagePath': personalImagePath,
-      'idCardImagePath': idCardImagePath,
-    };
-  }
-
-  Map<String, dynamic> toJsonWithToken() {
-    return {
-      'user': toJson(),
-      'token': _token
+      'password': password,
+      'profile_image': profile_image,
+      'id_card_image': id_card_image,
     };
   }
 
   User copyWith({
     int? id,
-    String? firstName,
-    String? lastName,
+    String? first_name,
+    String? last_name,
     DateTime? dateOfBirth,
     String? phone,
-    String? personalImagePath,
-    String? idCardImagePath,
+    String? profile_image,
+    String? id_card_image,
+    String? password
   }) {
-    final newUser = User(
+    return User(
       id: id ?? this.id,
-      firstName: firstName ?? this.firstName,
-      lastName: lastName ?? this.lastName,
+      first_name: first_name ?? this.first_name,
+      last_name: last_name ?? this.last_name,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       phone: phone ?? this.phone,
-      personalImagePath: personalImagePath ?? this.personalImagePath,
-      idCardImagePath: idCardImagePath ?? this.idCardImagePath,
+      profile_image: profile_image ?? this.profile_image,
+      id_card_image: id_card_image ?? this.id_card_image,
+      token: _token, // Preserve the token
     );
-    newUser._token = _token;
-    return newUser;
   }
+
   bool get isAuthenticated => _token != null && _token!.isNotEmpty;
 
   @override
   String toString() {
-    return 'User(id: $id, name: $firstName $lastName, phone: $phone, isAuthenticated: $isAuthenticated)';
+    return 'User(id: $id, name: $first_name $last_name, phone: $phone, isAuthenticated: $isAuthenticated)';
   }
 }

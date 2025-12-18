@@ -25,9 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _login() {
-    // First, validate the form.
     if (_formKey.currentState?.validate() ?? false) {
-      // If the form is valid, call the login method.
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       authProvider.login(_phoneController.text, _passwordController.text);
     }
@@ -65,11 +63,28 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _passwordController,
                   hintText: "Enter your password",
                   isPassword: true,
-                  maxLength: 8,
+                  maxLength: 10,
                   validator: (value) => Validators.hasMinLength(value, 8),
                 ),
                 const SizedBox(height: 80,),
                 
+                // --- ERROR MESSAGE DISPLAY ---
+                if (authProvider.errorMessage != null)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.error.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(color: theme.colorScheme.error.withOpacity(0.3), width: 1),
+                    ),
+                    child: Text(
+                      authProvider.errorMessage!,
+                      style: TextStyle(color: theme.colorScheme.error, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+
                 MaterialButton(
                   onPressed: authProvider.authStatus == AuthStatus.Authenticating ? null : _login,
                   child: Container(
@@ -84,12 +99,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         : Text("Login", style: theme.textTheme.headlineMedium?.copyWith(color: theme.colorScheme.onPrimary)),
                   ),
                 ),
-                
-                if (authProvider.errorMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10.0),
-                    child: Text(authProvider.errorMessage!, style: TextStyle(color: theme.colorScheme.error, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-                  ),
 
                 const SizedBox(height: 20),
                 Row(

@@ -25,10 +25,14 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  void _register() {
+  void _proceedToNextStep() {
     if (_formKey.currentState?.validate() ?? false) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      authProvider.register(_phoneController.text, _passwordController.text);
+      // Call the new method in AuthProvider
+      authProvider.checkPhoneAndProceed(
+        _phoneController.text,
+        _passwordController.text,
+      );
     }
   }
 
@@ -62,8 +66,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 Text("Create password", style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),),
                 CTextField(
                   controller: _passwordController,
-                  hintText: "Enter password with 8 characters",
-                  maxLength: 8,
+                  hintText: "Enter password",
+                  maxLength: 10,
                   isPassword: true,
                   validator: (value) => Validators.hasMinLength(value, 8),
                 ),
@@ -73,7 +77,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 CTextField(
                   controller: _confirmPasswordController,
                   hintText: "Re-enter your password",
-                  maxLength: 8,
+                  maxLength: 10,
                   isPassword: true,
                   validator: (value) {
                     if (value != _passwordController.text) {
@@ -82,10 +86,26 @@ class _RegisterPageState extends State<RegisterPage> {
                     return null;
                   },
                 ),
-
                 const SizedBox(height: 50,),
+
+                if (authProvider.errorMessage != null)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.error.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(color: theme.colorScheme.error.withOpacity(0.3), width: 1),
+                    ),
+                    child: Text(
+                      authProvider.errorMessage!,
+                      style: TextStyle(color: theme.colorScheme.error, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+
                 MaterialButton(
-                  onPressed: authProvider.authStatus == AuthStatus.Authenticating ? null : _register,
+                  onPressed: authProvider.authStatus == AuthStatus.Authenticating ? null : _proceedToNextStep,
                   child: Container(
                     height: 60,
                     alignment: Alignment.center,
@@ -95,26 +115,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     child: authProvider.authStatus == AuthStatus.Authenticating
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : Text("Register", style: theme.textTheme.headlineMedium?.copyWith(color: theme.colorScheme.onPrimary)),
+                        : Text("Next", style: theme.textTheme.headlineMedium?.copyWith(color: theme.colorScheme.onPrimary)),
                   ),
-                ),
-                
-                if (authProvider.errorMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10.0),
-                    child: Text(authProvider.errorMessage!, style: TextStyle(color: theme.colorScheme.error, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-                  ),
-
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text("Already have an account? ", style: theme.textTheme.bodyMedium,),
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Text("Login", style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
-                    ),
-                  ],
                 ),
               ],
             ),

@@ -1,61 +1,90 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // Private constructor
   AppTheme._();
 
+  // Define custom colors
+  static const Color _primaryColor = Color(0xFF00897B); // A modern Teal
+  static const Color _secondaryColor = Color(0xFFFFA000); // A warm Amber
+  static const Color _lightBackgroundColor = Color(0xFFF7F9FA);
+  static const Color _darkTextColor = Color(0xFF2C3E50);
+  static const Color _lightTextColor = Colors.white;
+
   static final ThemeData lightTheme = ThemeData(
-    // Define the default brightness and colors.
     brightness: Brightness.light,
-    primaryColor: const Color(0xFF0D47A1), // A deep, trustworthy blue
-    scaffoldBackgroundColor: const Color(0xFFF5F5F5), // A very light grey for the background
+    primaryColor: _primaryColor,
+    scaffoldBackgroundColor: _lightBackgroundColor,
 
-    // Define the default `AppBar` theme.
+    // Use Google Fonts for a more modern feel
+    textTheme: GoogleFonts.poppinsTextTheme(const TextTheme(
+      displayLarge: TextStyle(fontWeight: FontWeight.bold, color: _darkTextColor),
+      displayMedium: TextStyle(fontWeight: FontWeight.bold, color: _darkTextColor),
+      headlineMedium: TextStyle(fontWeight: FontWeight.bold, color: _darkTextColor),
+      bodyLarge: TextStyle(color: _darkTextColor, height: 1.5),
+      bodyMedium: TextStyle(color: Colors.black54, height: 1.5),
+    )),
+
+    colorScheme: const ColorScheme.light(
+      primary: _primaryColor,
+      secondary: _secondaryColor,
+      onPrimary: _lightTextColor,
+      onSecondary: _lightTextColor,
+      background: _lightBackgroundColor,
+      surface: Colors.white, // For cards and dialogs
+      onBackground: _darkTextColor,
+      onSurface: _darkTextColor,
+      error: Colors.redAccent,
+    ),
+
     appBarTheme: const AppBarTheme(
-      color: Color(0xFF0D47A1), // Use the primary color for the AppBar
-      iconTheme: IconThemeData(color: Colors.white), // White icons on the AppBar
+      color: _primaryColor,
+      elevation: 4,
+      iconTheme: IconThemeData(color: _lightTextColor),
       titleTextStyle: TextStyle(
-        color: Colors.white,
         fontSize: 20,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w600, // Slightly less bold
+        color: _lightTextColor,
       ),
     ),
 
-    // Define the default `TextButton` theme.
-    textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
-        foregroundColor: const Color(0xFF0D47A1), // Use primary color for text buttons
-      ),
-    ),
-
-    // Define the default `ElevatedButton` theme.
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF0D47A1), // Primary color for button background
-        foregroundColor: Colors.white, // White text for buttons
-      ),
+    // Card Theme for a softer look
+    cardTheme: CardThemeData(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
+      margin: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+      clipBehavior: Clip.antiAlias,
     ),
     
-    // Define the default `ColorScheme`.
-    colorScheme: const ColorScheme.light(
-      primary: Color(0xFF0D47A1), // Deep blue
-      secondary: Color(0xFFFF6D00), // A vibrant orange for accents (FloatingActionButtons, etc.)
-      onPrimary: Colors.white, // Text/icons on primary color
-      onSecondary: Colors.white, // Text/icons on secondary color
-      error: Colors.redAccent,
-      background: Color(0xFFF5F5F5),
-      onBackground: Colors.black87, // Text on background
-      surface: Colors.white, // Cards, dialogs, etc.
-      onSurface: Colors.black87, // Text on surface
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: _secondaryColor,
+      foregroundColor: _lightTextColor,
     ),
 
-    // Define the default `TextTheme` to be used across the app.
-    textTheme: const TextTheme(
-      displayLarge: TextStyle(fontSize: 28.0, fontWeight: FontWeight.bold, color: Colors.black87),
-      displayMedium: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold, color: Colors.black87),
-      headlineMedium: TextStyle(fontSize: 22.0, fontWeight: FontWeight.bold, color: Colors.black87),
-      bodyLarge: TextStyle(fontSize: 16.0, color: Colors.black87),
-      bodyMedium: TextStyle(fontSize: 14.0, color: Colors.black54),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide(color: Colors.grey.shade300, width: 1.5),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: const BorderSide(color: _primaryColor, width: 2.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: const BorderSide(color: Colors.redAccent, width: 2.5),
+      ),
     ),
   );
 }

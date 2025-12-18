@@ -8,7 +8,7 @@ class CTextField extends StatelessWidget {
   final bool isPassword;
   final int? maxLength;
   final TextInputType? textInputType;
-
+  final int? minLength;
   const CTextField({
     super.key,
     this.controller,
@@ -17,6 +17,7 @@ class CTextField extends StatelessWidget {
     this.isPassword = false,
     this.maxLength,
     this.textInputType,
+    this.minLength,
   });
 
   @override
@@ -28,6 +29,7 @@ class CTextField extends StatelessWidget {
       validator: validator,
       obscureText: isPassword,
       maxLength: maxLength,
+      
       keyboardType: textInputType,
       decoration: InputDecoration(
         fillColor: theme.colorScheme.surface,

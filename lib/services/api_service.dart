@@ -5,15 +5,11 @@ import 'package:plproject/models/user.dart';
 
 class ApiService {
 
-  // To connect to a local backend from an emulator/real device:
-  // 1. In your Laravel project terminal, run: 'php artisan serve --host=0.0.0.0'
-  // 2. Use your computer's local IP address here.
   static const String _baseUrl = 'http://10.39.44.207:8000/api';
 
-  // --- Auth Endpoints ---
+  // --- User Auth Endpoints ---
 
   Future<User> login(String phone, String password) async {
-    // The '/auth' prefix has been removed as per your instruction.
     final response = await http.post(
       Uri.parse('$_baseUrl/login'),
       headers: {'Content-Type': 'application/json; charset=UTF-8', 'Accept': 'application/json'},
@@ -27,7 +23,6 @@ class ApiService {
   }
 
   Future<bool> checkPhoneAvailability(String phone) async {
-    // The '/auth' prefix has been removed as per your instruction.
     final response = await http.post(
       Uri.parse('$_baseUrl/check-phone'),
       headers: {'Content-Type': 'application/json; charset=UTF-8', 'Accept': 'application/json'},
@@ -57,7 +52,7 @@ class ApiService {
 
   Future<User> getUserProfile(String token) async {
     final response = await http.get(
-      Uri.parse('$_baseUrl/user/profile'), // Assuming this is correct
+      Uri.parse('$_baseUrl/user/profile'),
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token', 'Accept': 'application/json'},
     );
     if (response.statusCode == 200) {
@@ -69,7 +64,7 @@ class ApiService {
 
   Future<User> updateUserProfile(User user, String token) async {
     final response = await http.put(
-      Uri.parse('$_baseUrl/user/profile'), // Assuming this is correct
+      Uri.parse('$_baseUrl/user/profile'),
       headers: {'Content-Type': 'application/json; charset=UTF-8', 'Authorization': 'Bearer $token', 'Accept': 'application/json'},
       body: jsonEncode(user.toJson()),
     );

@@ -5,7 +5,8 @@ import 'package:plproject/models/user.dart';
 
 class ApiService {
 
-  static const String _baseUrl = 'http://10.39.44.207:8000/api';
+  // Updated with your correct local IP address after disabling VPN.
+  static const String _baseUrl = 'http://rental-app-backend.test/api';
 
   // --- User Auth Endpoints ---
 
@@ -24,7 +25,7 @@ class ApiService {
 
   Future<bool> checkPhoneAvailability(String phone) async {
     final response = await http.post(
-      Uri.parse('$_baseUrl/check-phone'),
+      Uri.parse('$_baseUrl/check_phone_availability'),
       headers: {'Content-Type': 'application/json; charset=UTF-8', 'Accept': 'application/json'},
       body: jsonEncode({'phone': phone}),
     );

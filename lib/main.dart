@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:plproject/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 import 'package:plproject/providers/apartment_provider.dart';
 import 'package:plproject/providers/auth_provider.dart';
 import 'package:plproject/screens/auth/auth_wrapper.dart';
-// import 'package:plproject/theme/app_theme.dart'; // Temporarily disabled
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: "Rent Apartments",
-        // theme: AppTheme.lightTheme, // Temporarily disabled to resolve build error
+        theme: AppTheme.lightTheme, // Re-enabled the theme
         home: const AuthWrapper(),
       ),
     );

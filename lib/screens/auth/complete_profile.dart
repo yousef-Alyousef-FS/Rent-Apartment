@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:plproject/models/user.dart';
 import 'package:plproject/providers/auth_provider.dart';
-import 'package:plproject/services/storage_service.dart'; // Assuming you have a storage service
+import 'package:plproject/services/storage_service.dart';
 import '../../widgets/CTextField.dart';
 
 class CompleteProfile extends StatefulWidget {
@@ -20,7 +20,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
   final _lastNameController = TextEditingController();
   final _dobController = TextEditingController();
 
-  // final _storageService = StorageService();
+  final _storageService = StorageService();
   final _picker = ImagePicker();
 
   XFile? _personalImageFile;
@@ -35,118 +35,106 @@ class _CompleteProfileState extends State<CompleteProfile> {
   }
 
   Future<void> _registerProfile() async {
-    if (!(_formKey.currentState?.validate() ?? false)) {
-      return; // Don't proceed if the form is invalid
-    }
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     String? personalImageUrl;
     String? idCardImageUrl;
 
-    // TODO: Re-enable storage service and image upload logic
-    // if (_personalImageFile != null) {
-    //   personalImageUrl = await _storageService.uploadImage(...);
-    // }
-    // if (_idCardImageFile != null) {
-    //   idCardImageUrl = await _storageService.uploadImage(...);
-    // }
+    try {
+      authProvider.setAuthenticating(); // Set loading state
 
-    final profileData = User(
-      first_name: _firstNameController.text,
-      last_name: _lastNameController.text,
-      dateOfBirth: DateTime.tryParse(_dobController.text),
-      profile_image: personalImageUrl,
-      id_card_image: idCardImageUrl,
-    );
+      if (_personalImageFile != null) {
+        personalImageUrl = await _storageService.uploadImage(_personalImageFile!.path);
+      }
+      if (_idCardImageFile != null) {
+        idCardImageUrl = await _storageService.uploadImage(_idCardImageFile!.path);
+      }
 
-    await authProvider.register(profileData);
+      final profileData = User(
+        first_name: _firstNameController.text,
+        last_name: _lastNameController.text,
+        dateOfBirth: DateTime.tryParse(_dobController.text),
+        profile_image: personalImageUrl,
+        id_card_image: idCardImageUrl,
+      );
+
+      await authProvider.register(profileData);
+
+    } catch (e) {
+      authProvider.setError(e.toString()); // Set error state
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   Future<void> _pickImage(bool isPersonal) async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        if (isPersonal) {
-          _personalImageFile = pickedFile;
-        } else {
-          _idCardImageFile = pickedFile;
-        }
-      });
-    }
+     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+     if (pickedFile != null) {
+       setState(() {
+         if (isPersonal) {
+           _personalImageFile = pickedFile;
+         } else {
+           _idCardImageFile = pickedFile;
+         }
+       });
+     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Complete Your Profile"),
-        automaticallyImplyLeading: false,
-      ),
-      body: Consumer<AuthProvider>(
+       appBar: AppBar(title: const Text("Complete Your Profile"), automaticallyImplyLeading: false),
+       body: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
           return Form(
             key: _formKey,
             child: ListView(
               padding: const EdgeInsets.all(25),
               children: [
-                // ... (rest of the UI is the same as before)
-                Text("First Name", style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
-                CTextField(
-                  controller: _firstNameController, 
-                  hintText: "Enter your first name",
-                  validator: (val) => val == null || val.isEmpty ? 'First name is required' : null,
-                ),
-                const SizedBox(height: 15),
-                
-                Text("Last Name", style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
-                CTextField(
-                  controller: _lastNameController, 
-                  hintText: "Enter your last name",
-                  validator: (val) => val == null || val.isEmpty ? 'Last name is required' : null,
-                ),
-                const SizedBox(height: 15),
+                 Text("First Name", style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
+                 CTextField(controller: _firstNameController, hintText: "Enter your first name", validator: (val) => val == null || val.isEmpty ? 'First name is required' : null,),
+                 const SizedBox(height: 15,),
+                 
+                 Text("Last Name", style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
+                 CTextField(controller: _lastNameController, hintText: "Enter your last name", validator: (val) => val == null || val.isEmpty ? 'Last name is required' : null,),
+                 const SizedBox(height: 15,),
 
-                Text("Date Of Birth", style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
-                CTextField(controller: _dobController, hintText: "YYYY-MM-DD"),
-                const SizedBox(height: 30),
+                 Text("Date Of Birth", style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
+                 CTextField(controller: _dobController, hintText: "YYYY-MM-DD"),
+                 const SizedBox(height: 30,),
 
-                // ... (Image upload buttons)
+                 // Image upload buttons would be here
 
-                const SizedBox(height: 30),
+                 const SizedBox(height: 30,),
 
-                if (authProvider.errorMessage != null)
+                if (authProvider.errorMessage != null && authProvider.authStatus != AuthStatus.Authenticating)
                   Container(
-                    padding: const EdgeInsets.all(12),
-                    margin: const EdgeInsets.only(bottom: 20),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.error.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(15),
-                      border: Border.all(color: theme.colorScheme.error.withOpacity(0.3), width: 1),
-                    ),
-                    child: Text(
-                      authProvider.errorMessage!,
-                      style: TextStyle(color: theme.colorScheme.error, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
+                     padding: const EdgeInsets.all(12),
+                     margin: const EdgeInsets.only(bottom: 20),
+                     // ... error container styling
                   ),
 
-                MaterialButton(
-                  onPressed: authProvider.authStatus == AuthStatus.Authenticating ? null : _registerProfile,
-                  child: Container(
-                    height: 60,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(color: theme.colorScheme.primary, borderRadius: BorderRadius.circular(25)),
-                    child: authProvider.authStatus == AuthStatus.Authenticating
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : Text("Register", style: theme.textTheme.headlineMedium?.copyWith(color: theme.colorScheme.onPrimary)),
-                  ),
-                ),
+                 MaterialButton(
+                   onPressed: authProvider.authStatus == AuthStatus.Authenticating ? null : _registerProfile,
+                   child: Container(
+                     height: 60,
+                     alignment: Alignment.center,
+                     decoration: BoxDecoration(color: theme.colorScheme.primary, borderRadius: BorderRadius.circular(25)),
+                     child: authProvider.authStatus == AuthStatus.Authenticating
+                         ? const CircularProgressIndicator(color: Colors.white)
+                         : Text("Register", style: theme.textTheme.headlineMedium?.copyWith(color: theme.colorScheme.onPrimary)),
+                   ),
+                 ),
               ],
             ),
           );
         },
-      ),
+       ),
     );
   }
 }

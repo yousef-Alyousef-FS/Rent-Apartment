@@ -4,6 +4,7 @@ import 'package:plproject/providers/auth_provider.dart';
 import 'package:plproject/screens/appartments/appartment.dart';
 import 'package:plproject/screens/auth/complete_profile.dart';
 import 'package:plproject/screens/auth/login.dart';
+import 'package:plproject/screens/auth/pending_approval_screen.dart'; // Import the new screen
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
@@ -12,15 +13,21 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
+        // Check for user status if logged in
+        if (authProvider.authStatus == AuthStatus.Authenticated) {
+          if (authProvider.user?.status == 'pending') {
+            return const PendingApprovalScreen();
+          }
+          return const Apartments();
+        }
+
+        // Handle other statuses
         switch (authProvider.authStatus) {
           case AuthStatus.CheckingAuth:
             return const Scaffold(body: Center(child: CircularProgressIndicator()));
           
           case AuthStatus.NeedsProfileCompletion:
             return const CompleteProfile();
-
-          case AuthStatus.Authenticated:
-            return const Apartments();
 
           case AuthStatus.Authenticating:
           case AuthStatus.Unauthenticated:

@@ -6,8 +6,10 @@ class User {
   String? phone;
   String? profile_image;
   String? id_card_image;
-  String? _token;
+  String? status;
   String? password;
+  String? _token;
+
   String? get token => _token;
   set token(String? t) => _token = t;
 
@@ -19,8 +21,9 @@ class User {
     this.phone,
     this.profile_image,
     this.id_card_image,
+    this.status,
     this.password,
-    String? token, // Allow passing token in constructor
+    String? token,
   }) {
     _token = token;
   }
@@ -34,6 +37,7 @@ class User {
       phone: json['phone'] as String?,
       profile_image: json['profile_image'] as String?,
       id_card_image: json['id_card_image'] as String?,
+      status: json['status'] as String?,
       token: json['token'] as String?,
     );
   }
@@ -45,9 +49,10 @@ class User {
       'last_name': last_name,
       'dateOfBirth': dateOfBirth?.toIso8601String(),
       'phone': phone,
-      'password': password,
       'profile_image': profile_image,
       'id_card_image': id_card_image,
+      'status': status,
+      'password': password,
     };
   }
 
@@ -59,7 +64,8 @@ class User {
     String? phone,
     String? profile_image,
     String? id_card_image,
-    String? password
+    String? status,
+    String? password,
   }) {
     return User(
       id: id ?? this.id,
@@ -69,7 +75,9 @@ class User {
       phone: phone ?? this.phone,
       profile_image: profile_image ?? this.profile_image,
       id_card_image: id_card_image ?? this.id_card_image,
-      token: _token, // Preserve the token
+      status: status ?? this.status,
+      password: password ?? this.password,
+      token: _token,
     );
   }
 
@@ -77,6 +85,6 @@ class User {
 
   @override
   String toString() {
-    return 'User(id: $id, name: $first_name $last_name, phone: $phone, isAuthenticated: $isAuthenticated)';
+    return 'User(id: $id, name: $first_name $last_name, phone: $phone, status: $status, isAuthenticated: $isAuthenticated)';
   }
 }

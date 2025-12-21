@@ -48,7 +48,7 @@ class _RegisterPageState extends State<RegisterPage> {
             child: ListView(
               padding: const EdgeInsets.all(25),
               children: [
-                Image.asset("images/logo.png", width: 150, height: 150,),
+                Image.asset("assets/images/logo.png", width: 150, height: 150,),
                 const SizedBox(height: 20,),
                 Text("Create Account", style: theme.textTheme.displayMedium, textAlign: TextAlign.center,),
                 SizedBox(height: 30, child: Text("Let's get you started!", style: theme.textTheme.bodyMedium, textAlign: TextAlign.center,)),

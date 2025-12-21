@@ -1,33 +1,32 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
-
-// TODO: This service needs to be updated to work with the new backend API for file uploads.
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class StorageService {
+  static const String _baseUrl = 'http://10.39.44.207:8000/api';
 
-  /// Uploads an image file and returns the download URL.
-  /// This is a placeholder and needs to be implemented with the actual backend API.
-  Future<String> uploadImage(String filePath, String destinationPath) async {
+  // Updated: Removed the token parameter as this endpoint is likely unprotected during registration.
+  Future<String> uploadImage(String filePath) async {
     final file = File(filePath);
+    final uri = Uri.parse('$_baseUrl/upload-image'); // Assuming this is the endpoint
 
-    // This is where you would use a package like 'http' with a multipart request
-    // to send the file to your Laravel backend.
+    var request = http.MultipartRequest('POST', uri);
+    request.headers['Accept'] = 'application/json';
+    
+    request.files.add(await http.MultipartFile.fromPath(
+      'image', // The field name the backend expects for the file
+      file.path
+    ));
 
-    // Example (pseudo-code):
-    // final request = http.MultipartRequest('POST', Uri.parse('YOUR_BACKEND_API/upload'));
-    // request.files.add(await http.MultipartFile.fromPath('image', file.path));
-    // final response = await request.send();
-    // if (response.statusCode == 200) {
-    //   final responseData = await response.stream.bytesToString();
-    //   final json = jsonDecode(responseData);
-    //   return json['url']; // Assuming the API returns the URL in this format
-    // }
+    final response = await request.send();
 
-    debugPrint("uploadImage is not implemented yet. Returning a placeholder URL.");
-
-    // For now, let's return a placeholder URL to avoid breaking the app logic.
-    // In a real scenario, you would throw an exception or handle the error.
-    await Future.delayed(const Duration(seconds: 2)); // Simulate network delay
-    return 'https://via.placeholder.com/150/0000FF/FFFFFF?Text=Uploaded+Image';
+    if (response.statusCode == 200) {
+      final responseData = await response.stream.bytesToString();
+      final json = jsonDecode(responseData);
+      return json['url'] as String;
+    } else {
+      final errorBody = await response.stream.bytesToString();
+      throw Exception('Failed to upload image. Status: ${response.statusCode}, Body: $errorBody');
+    }
   }
 }

@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../services/api_service.dart';
 
-enum AuthStatus { Unauthenticated, Authenticating, Authenticated, CheckingAuth, NeedsProfileCompletion }
+enum AuthStatus { Unauthenticated, Authenticating, Authenticated, CheckingAuth, NeedsProfileCompletion, PendingApproval }
 
 class AuthProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
@@ -13,7 +13,6 @@ class AuthProvider with ChangeNotifier {
   User? _user;
   String? _errorMessage;
 
-  // Temporary storage for the registration flow
   String? _tempPhone;
   String? _tempPassword;
 
@@ -25,20 +24,54 @@ class AuthProvider with ChangeNotifier {
     tryAutoLogin();
   }
 
-  Future<void> tryAutoLogin() async {
-    // ... (existing implementation)
-  }
-
-  Future<void> login(String phone, String password) async {
-    // ... (existing implementation)
-  }
-
-  /// Step 1 of Registration: Check phone and proceed to complete profile
-  Future<bool> checkPhoneAndProceed(String phone, String password) async {
+  void setAuthenticating() {
     _authStatus = AuthStatus.Authenticating;
     _errorMessage = null;
     notifyListeners();
+  }
 
+  void setError(String message) {
+    _errorMessage = message;
+    _authStatus = AuthStatus.Unauthenticated;
+    notifyListeners();
+  }
+
+  Future<void> tryAutoLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!prefs.containsKey(_tokenKey)) {
+      _authStatus = AuthStatus.Unauthenticated;
+      notifyListeners();
+      return;
+    }
+    final token = prefs.getString(_tokenKey)!;
+    try {
+      _user = await _apiService.getUserProfile(token);
+      _authStatus = AuthStatus.Authenticated;
+    } catch (e) {
+      await logout();
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  Future<void> login(String phone, String password) async {
+    setAuthenticating();
+    try {
+      final loggedInUser = await _apiService.login(phone, password);
+      _user = loggedInUser;
+      _authStatus = AuthStatus.Authenticated;
+      if (loggedInUser.token != null) {
+        await _saveToken(loggedInUser.token!);
+      }
+    } catch (e) {
+      setError(e.toString());
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  Future<bool> checkPhoneAndProceed(String phone, String password) async {
+    setAuthenticating();
     try {
       final isAvailable = await _apiService.checkPhoneAvailability(phone);
       if (isAvailable) {
@@ -48,66 +81,49 @@ class AuthProvider with ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        _errorMessage = "This phone number is already registered.";
-        _authStatus = AuthStatus.Unauthenticated;
-        notifyListeners();
+        setError("This phone number is already registered.");
         return false;
       }
     } catch (e) {
-      _authStatus = AuthStatus.Unauthenticated;
-      _errorMessage = e.toString();
-      notifyListeners();
+      setError(e.toString());
       return false;
     }
   }
 
-  /// Step 2 of Registration: Submit the complete profile
   Future<bool> register(User profileData) async {
     if (_tempPhone == null || _tempPassword == null) {
-      _errorMessage = "Registration session expired. Please start over.";
-      _authStatus = AuthStatus.Unauthenticated;
-      notifyListeners();
+      setError("Registration session expired. Please start over.");
       return false;
     }
+    setAuthenticating();
 
-    _authStatus = AuthStatus.Authenticating;
-    _errorMessage = null;
-    notifyListeners();
-
-    // Combine temporary data with profile data
     profileData.phone = _tempPhone;
     profileData.password = _tempPassword;
 
     try {
-      final newUser = await _apiService.register(profileData);
-      _user = newUser;
-      _authStatus = AuthStatus.Authenticated; // Registration complete!
-      if (newUser.token != null) {
-        await _saveToken(newUser.token!);
-      }
-      // Clear temporary data
+      await _apiService.register(profileData);
+      await login(_tempPhone!, _tempPassword!); 
       _tempPhone = null;
       _tempPassword = null;
       return true;
     } catch (e) {
       _errorMessage = e.toString();
-      // Stay on the profile page if registration fails
       _authStatus = AuthStatus.NeedsProfileCompletion;
       notifyListeners();
       return false;
     }
   }
 
-  Future<bool> updateProfile(User userToUpdate, String token) async {
-     // ... (existing implementation)
-     return false;
-  }
-
   Future<void> logout() async {
-    // ... (existing implementation)
+    _user = null;
+    _authStatus = AuthStatus.Unauthenticated;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_tokenKey);
+    notifyListeners();
   }
 
   Future<void> _saveToken(String token) async {
-    // ... (existing implementation)
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_tokenKey, token);
   }
 }

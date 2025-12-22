@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/apartment.dart';
-import '../screens/appartments/apartment_details_screen.dart'; // Import the details screen
+import 'package:plproject/models/apartment.dart';
+import 'package:plproject/screens/apartments/apartment_details_screen.dart';
 
 class ApartmentCard extends StatelessWidget {
   final Apartment apartment;
@@ -13,7 +13,6 @@ class ApartmentCard extends StatelessWidget {
 
     return InkWell(
       onTap: () {
-        // Navigate to the details screen when the card is tapped.
         Navigator.push(
           context,
           MaterialPageRoute(

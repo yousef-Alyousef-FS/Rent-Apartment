@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:plproject/providers/auth_provider.dart';
-import 'package:plproject/screens/appartments/appartment.dart';
+import 'package:plproject/screens/apartments/apartment.dart';
 import 'package:plproject/screens/auth/complete_profile.dart';
 import 'package:plproject/screens/auth/login.dart';
-import 'package:plproject/screens/auth/pending_approval_screen.dart'; // Import the new screen
+import 'package:plproject/screens/auth/pending_approval_screen.dart';
+
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});

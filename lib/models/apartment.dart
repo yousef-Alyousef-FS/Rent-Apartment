@@ -26,12 +26,11 @@ class Apartment {
       id: json['id'] as int,
       title: json['title'] as String,
       description: json['description'] as String,
-      price: (json['price'] as num).toDouble(), // Handle both int and double from API
+      price: (json['price'] as num).toDouble(),
       location: json['location'] as String,
       bedrooms: json['bedrooms'] as int,
       bathrooms: json['bathrooms'] as int,
       area: json['area'] as int,
-      // Assuming 'image_urls' is a list of strings. Adjust if necessary.
       imageUrls: List<String>.from(json['image_urls'] ?? []),
     );
   }

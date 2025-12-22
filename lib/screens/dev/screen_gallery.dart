@@ -14,12 +14,12 @@ import '../auth/pending_approval_screen.dart';
 // Main App
 import '../main/home_screen.dart';
 import '../main/explore_screen.dart';
-import '../appartments/apartment_details_screen.dart';
+import '../apartments/apartment_details_screen.dart';
 import '../main/search_screen.dart';
 import '../main/filter_screen.dart';
 import '../main/location_map_screen.dart';
 import '../main/settings_screen.dart';
-import '../appartments/appartment.dart';
+import '../apartments/apartment.dart';
 
 // Booking
 import '../booking/booking_screen.dart';
@@ -104,7 +104,7 @@ class ScreenGallery extends StatelessWidget {
           _buildNavButton(context, 'Settings', const SettingsScreen()),
 
           _buildCategoryHeader('Booking Flow'),
-          _buildNavButton(context, 'Booking Screen', const BookingScreen()),
+          _buildNavButton(context, 'Booking Screen',  BookingScreen()),
           _buildNavButton(context, 'My Bookings List', const BookingsListScreen()),
           _buildNavButton(context, 'Booking Detail', const BookingDetailScreen()),
           _buildNavButton(context, 'Write a Review', const ReviewScreen()),

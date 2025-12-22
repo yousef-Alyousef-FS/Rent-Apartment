@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:plproject/screens/auth/complete_profile.dart';
 import 'package:provider/provider.dart';
 import 'package:plproject/providers/admin_provider.dart';
 import 'package:plproject/screens/admin/admin_dashboard_screen.dart';
@@ -22,7 +23,7 @@ class UITestbedApp extends StatelessWidget {
         title: "UI Testbed",
         theme: AppTheme.lightTheme,
         // Directly display the screen you want to test.
-        home: const AdminDashboardScreen(),
+        home: const CompleteProfile(),
       ),
     );
   }

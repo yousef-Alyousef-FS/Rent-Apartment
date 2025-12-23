@@ -17,7 +17,8 @@ class UITestbedApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       // Create the provider and immediately call loadMockData.
-      create: (context) => AdminProvider()..loadMockData(),
+
+      create: (BuildContext context) {  },
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: "UI Testbed",

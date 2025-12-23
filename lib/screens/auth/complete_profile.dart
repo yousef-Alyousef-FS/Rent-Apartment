@@ -4,8 +4,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:plproject/models/user.dart';
 import 'package:plproject/providers/auth_provider.dart';
-import 'package:plproject/services/storage_service.dart';
-import '../../widgets/CTextField.dart';
+import 'package:plproject/widgets/CTextField.dart';
+
+import '../../theme/app_theme.dart';
 
 class CompleteProfile extends StatefulWidget {
   const CompleteProfile({super.key});
@@ -20,9 +21,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
   final _lastNameController = TextEditingController();
   final _dobController = TextEditingController();
 
-  final _storageService = StorageService();
   final _picker = ImagePicker();
-
   XFile? _personalImageFile;
   XFile? _idCardImageFile;
 
@@ -38,37 +37,14 @@ class _CompleteProfileState extends State<CompleteProfile> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    String? personalImageUrl;
-    String? idCardImageUrl;
+    final profileData = User(
+      first_name: _firstNameController.text,
+      last_name: _lastNameController.text,
+      dateOfBirth: DateTime.tryParse(_dobController.text),
+    );
 
-    try {
-      authProvider.setAuthenticating(); // Set loading state
-
-      if (_personalImageFile != null) {
-        personalImageUrl = await _storageService.uploadImage(_personalImageFile!.path);
-      }
-      if (_idCardImageFile != null) {
-        idCardImageUrl = await _storageService.uploadImage(_idCardImageFile!.path);
-      }
-
-      final profileData = User(
-        first_name: _firstNameController.text,
-        last_name: _lastNameController.text,
-        dateOfBirth: DateTime.tryParse(_dobController.text),
-        profile_image: personalImageUrl,
-        id_card_image: idCardImageUrl,
-      );
-
-      await authProvider.register(profileData);
-
-    } catch (e) {
-      authProvider.setError(e.toString()); // Set error state
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
-        );
-      }
-    }
+    // Pass the files to the provider
+    await authProvider.register(profileData, _personalImageFile, _idCardImageFile);
   }
 
   Future<void> _pickImage(bool isPersonal) async {
@@ -105,10 +81,14 @@ class _CompleteProfileState extends State<CompleteProfile> {
                  const SizedBox(height: 15,),
 
                  Text("Date Of Birth", style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
-                 CTextField(controller: _dobController, hintText: "YYYY-MM-DD"),
+                 CTextField(controller: _dobController, hintText: "YYYY-MM-DD", textInputType: TextInputType.datetime),
                  const SizedBox(height: 30,),
 
-                 // Image upload buttons would be here
+                 // --- Image Upload UI ---
+                 _buildImagePicker(theme, 'Personal Photo', _personalImageFile, () => _pickImage(true)),
+                 const SizedBox(height: 20),
+                 _buildImagePicker(theme, 'ID Card Photo', _idCardImageFile, () => _pickImage(false)),
+                 // --- End Image Upload UI ---
 
                  const SizedBox(height: 30,),
 
@@ -116,18 +96,31 @@ class _CompleteProfileState extends State<CompleteProfile> {
                   Container(
                      padding: const EdgeInsets.all(12),
                      margin: const EdgeInsets.only(bottom: 20),
-                     // ... error container styling
+                     decoration: BoxDecoration(
+                        color: theme.colorScheme.error.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(color: theme.colorScheme.error.withOpacity(0.3), width: 1),
+                      ),
+                     child: Text(
+                       authProvider.errorMessage!,
+                       style: TextStyle(color: theme.colorScheme.error, fontWeight: FontWeight.bold),
+                       textAlign: TextAlign.center,
+                     ),
                   ),
 
                  MaterialButton(
                    onPressed: authProvider.authStatus == AuthStatus.Authenticating ? null : _registerProfile,
-                   child: Container(
-                     height: 60,
-                     alignment: Alignment.center,
-                     decoration: BoxDecoration(color: theme.colorScheme.primary, borderRadius: BorderRadius.circular(25)),
-                     child: authProvider.authStatus == AuthStatus.Authenticating
-                         ? const CircularProgressIndicator(color: Colors.white)
-                         : Text("Register", style: theme.textTheme.headlineMedium?.copyWith(color: theme.colorScheme.onPrimary)),
+                   padding: EdgeInsets.zero,
+                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                   child: Ink(
+                      decoration: BoxDecoration(gradient: AppTheme.primaryGradient, borderRadius: BorderRadius.circular(25)),
+                      child: Container(
+                         height: 60,
+                         alignment: Alignment.center,
+                         child: authProvider.authStatus == AuthStatus.Authenticating
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : Text("Register", style: theme.textTheme.headlineMedium?.copyWith(color: Colors.white)),
+                      ),
                    ),
                  ),
               ],
@@ -135,6 +128,34 @@ class _CompleteProfileState extends State<CompleteProfile> {
           );
         },
        ),
+    );
+  }
+
+  Widget _buildImagePicker(ThemeData theme, String title, XFile? file, VoidCallback onPick) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: onPick,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            height: 150,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade400),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: file == null
+                ? Center(child: Icon(Icons.add_a_photo_outlined, size: 40, color: Colors.grey[600]))
+                : ClipRRect(
+                    borderRadius: BorderRadius.circular(11), 
+                    child: Image.file(File(file.path), fit: BoxFit.cover, width: double.infinity)
+                  ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -1,14 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:plproject/models/apartment.dart';
 import 'package:plproject/models/user.dart';
+import 'package:plproject/settings/connection.dart';
 
-class ApiService {
-
-  // Updated with your correct local IP address after disabling VPN.
-  static const String _baseUrl = 'http://rental-app-backend.test/api';
-
-  // --- User Auth Endpoints ---
+class UserApiService {
+  final String _baseUrl = Connection.emulatorBaseUrl ;
 
   Future<User> login(String phone, String password) async {
     final response = await http.post(
@@ -74,26 +70,6 @@ class ApiService {
       return user.copyWith(first_name: updatedUser.first_name, last_name: updatedUser.last_name);
     } else {
       throw Exception('Failed to update profile. Status: ${response.statusCode}, Body: ${response.body}');
-    }
-  }
-
-  // --- Apartment Endpoints ---
-
-  Future<List<Apartment>> getApartments(String token) async {
-    final response = await http.get(
-      Uri.parse('$_baseUrl/apartments'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token', 
-        'Accept': 'application/json'
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body)['data'];
-      return data.map((json) => Apartment.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load apartments. Status: ${response.statusCode}');
     }
   }
 }

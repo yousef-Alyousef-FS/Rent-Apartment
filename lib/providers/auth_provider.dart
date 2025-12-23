@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
-import '../services/api_service.dart';
+import '../services/APIs/user_api_service.dart';
+import '../services/storage_service.dart';
 
-enum AuthStatus { Unauthenticated, Authenticating, Authenticated, CheckingAuth, NeedsProfileCompletion, PendingApproval }
+enum AuthStatus {
+  Unauthenticated,
+  Authenticating,
+  Authenticated,
+  CheckingAuth,
+  NeedsProfileCompletion,
+  PendingApproval
+}
 
 class AuthProvider with ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  final UserApiService _apiService = UserApiService();
+  final StorageService _storageService = StorageService();
   static const String _tokenKey = 'auth_token';
 
   AuthStatus _authStatus = AuthStatus.CheckingAuth;
@@ -32,7 +42,9 @@ class AuthProvider with ChangeNotifier {
 
   void setError(String message) {
     _errorMessage = message;
-    _authStatus = AuthStatus.Unauthenticated;
+    if (_authStatus != AuthStatus.NeedsProfileCompletion) {
+      _authStatus = AuthStatus.Unauthenticated;
+    }
     notifyListeners();
   }
 
@@ -90,22 +102,41 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> register(User profileData) async {
+  Future<bool> register(User profileData, XFile? personalImage, XFile? idCardImage) async {
     if (_tempPhone == null || _tempPassword == null) {
       setError("Registration session expired. Please start over.");
       return false;
     }
     setAuthenticating();
 
-    profileData.phone = _tempPhone;
-    profileData.password = _tempPassword;
-
     try {
+      // 1. Upload images and get URLs
+      String? personalImageUrl;
+      String? idCardImageUrl;
+
+      if (personalImage != null) {
+        personalImageUrl = await _storageService.uploadImage(personalImage.path);
+      }
+      if (idCardImage != null) {
+        idCardImageUrl = await _storageService.uploadImage(idCardImage.path);
+      }
+
+      // 2. Assemble the final User object
+      profileData.phone = _tempPhone;
+      profileData.password = _tempPassword;
+      profileData.profile_image = personalImageUrl;
+      profileData.id_card_image = idCardImageUrl;
+
+      // 3. Create the user in the backend
       await _apiService.register(profileData);
+
+      // 4. Immediately log in to get a token and user status
       await login(_tempPhone!, _tempPassword!); 
+
       _tempPhone = null;
       _tempPassword = null;
       return true;
+
     } catch (e) {
       _errorMessage = e.toString();
       _authStatus = AuthStatus.NeedsProfileCompletion;

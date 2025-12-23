@@ -2,10 +2,11 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class StorageService {
-  static const String _baseUrl = 'http://10.39.44.207:8000/api';
+import 'package:plproject/settings/connection.dart';
 
-  // Updated: Removed the token parameter as this endpoint is likely unprotected during registration.
+class StorageService {
+  static const String _baseUrl = Connection.emulator_baseUrl;
+
   Future<String> uploadImage(String filePath) async {
     final file = File(filePath);
     final uri = Uri.parse('$_baseUrl/upload-image'); // Assuming this is the endpoint

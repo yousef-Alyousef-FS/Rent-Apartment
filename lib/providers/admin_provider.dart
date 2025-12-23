@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:plproject/models/user.dart';
-import 'package:plproject/services/admin_api_service.dart';
+import 'package:plproject/services/APIs/admin_api_service.dart';
 
 enum AdminStatus { Idle, Loading, Loaded, Error }
 
@@ -18,46 +18,62 @@ class AdminProvider with ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get isAdminLoggedIn => _adminUser != null && _adminUser!.token != null;
 
-  /// Loads mock data for UI testing.
-  void loadMockData() {
-    _status = AdminStatus.Loading;
-    notifyListeners();
-    // Simulate a small delay
-    Future.delayed(const Duration(milliseconds: 500), () {
-      _pendingUsers = [
-        User(id: 101, first_name: 'Ahmad', last_name: 'Nasser', phone: '555-0101'),
-        User(id: 102, first_name: 'Fatima', last_name: 'Zahra', phone: '555-0102'),
-        User(id: 103, first_name: 'Youssef', last_name: 'Khaled', phone: '555-0103'),
-      ];
-      _status = AdminStatus.Loaded;
-      _errorMessage = null;
-      notifyListeners();
-    });
-  }
-
   // --- Real API Methods ---
 
   Future<bool> login(String email, String password) async {
-    // ... (real implementation)
-    return false;
+    _status = AdminStatus.Loading;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      _adminUser = await _apiService.adminLogin(email, password);
+      if (isAdminLoggedIn) {
+        await fetchPendingUsers();
+      }
+      return isAdminLoggedIn;
+    } catch (e) {
+      _status = AdminStatus.Error;
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
   }
 
   Future<void> fetchPendingUsers() async {
-    // ... (real implementation)
+    if (!isAdminLoggedIn) return;
+    _status = AdminStatus.Loading;
+    notifyListeners();
+    try {
+      _pendingUsers = await _apiService.getPendingUsers(_adminUser!.token!);
+      _status = AdminStatus.Loaded;
+    } catch (e) {
+      _status = AdminStatus.Error;
+      _errorMessage = e.toString();
+    }
+    notifyListeners();
   }
 
   Future<void> approveUser(int userId) async {
-    // For mock purposes, just remove the user from the list
-    _pendingUsers.removeWhere((user) => user.id == userId);
-    notifyListeners();
-    print("Mock: Approved user $userId");
+    if (!isAdminLoggedIn) return;
+    try {
+      await _apiService.approveUser(userId, _adminUser!.token!);
+      _pendingUsers.removeWhere((user) => user.id == userId);
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+    }
   }
 
   Future<void> deleteUser(int userId) async {
-    // For mock purposes, just remove the user from the list
-    _pendingUsers.removeWhere((user) => user.id == userId);
-    notifyListeners();
-    print("Mock: Deleted user $userId");
+    if (!isAdminLoggedIn) return;
+    try {
+      await _apiService.deleteUser(userId, _adminUser!.token!);
+      _pendingUsers.removeWhere((user) => user.id == userId);
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+    }
   }
 
   void logout() {

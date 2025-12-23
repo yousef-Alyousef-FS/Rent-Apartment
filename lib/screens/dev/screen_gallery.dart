@@ -4,6 +4,8 @@ import 'package:plproject/models/apartment.dart';
 // --- Import ALL screens ---
 
 // Auth
+import '../apartments/apartment.dart';
+import '../apartments/apartment_details_screen.dart';
 import '../auth/welcome_auth_screen.dart';
 import '../auth/login.dart';
 import '../auth/register.dart';
@@ -19,7 +21,7 @@ import '../main/search_screen.dart';
 import '../main/filter_screen.dart';
 import '../main/location_map_screen.dart';
 import '../main/settings_screen.dart';
-import '../apartments/apartment.dart';
+
 
 // Booking
 import '../booking/booking_screen.dart';
@@ -104,7 +106,7 @@ class ScreenGallery extends StatelessWidget {
           _buildNavButton(context, 'Settings', const SettingsScreen()),
 
           _buildCategoryHeader('Booking Flow'),
-          _buildNavButton(context, 'Booking Screen',  BookingScreen()),
+          _buildNavButton(context, 'Booking Screen', BookingScreen()),
           _buildNavButton(context, 'My Bookings List', const BookingsListScreen()),
           _buildNavButton(context, 'Booking Detail', const BookingDetailScreen()),
           _buildNavButton(context, 'Write a Review', const ReviewScreen()),

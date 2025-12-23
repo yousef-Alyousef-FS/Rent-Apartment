@@ -5,7 +5,7 @@ class BookingScreen extends StatelessWidget {
    BookingScreen({super.key});
 
   // In a real app, this would be passed as an argument
-  final Apartment mockApartment =  Apartment(
+  final Apartment mockApartment = Apartment(
     id: 1, title: 'Ocean View Villa', price: 250, location: 'Malibu, California', 
     bedrooms: 4, bathrooms: 3, area: 320, imageUrls: ['https://via.placeholder.com/400x250/FF5722/FFFFFF?Text=Villa'], 
     description: 'An amazing villa with a breathtaking ocean view.'

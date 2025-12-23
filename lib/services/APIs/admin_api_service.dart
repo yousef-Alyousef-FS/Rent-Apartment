@@ -2,8 +2,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:plproject/models/user.dart';
 
+import '../../settings/connection.dart';
+
 class AdminApiService {
-  static const String _baseUrl = 'http://10.39.44.207:8000/api/admin';
+
+  static const String _baseUrl = Connection.chrome_baseUrl;
 
   Future<User> adminLogin(String email, String password) async {
     final response = await http.post(
@@ -50,4 +53,5 @@ class AdminApiService {
       throw Exception('Failed to delete user. Status: ${response.statusCode}');
     }
   }
+
 }

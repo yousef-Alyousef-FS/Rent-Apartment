@@ -34,4 +34,42 @@ class Apartment {
       imageUrls: List<String>.from(json['image_urls'] ?? []),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'price': price,
+      'location': location,
+      'bedrooms': bedrooms,
+      'bathrooms': bathrooms,
+      'area': area,
+      'image_urls': imageUrls,
+    };
+  }
+
+  Apartment copyWith({
+    int? id,
+    String? title,
+    String? description,
+    double? price,
+    String? location,
+    int? bedrooms,
+    int? bathrooms,
+    int? area,
+    List<String>? imageUrls,
+  }) {
+    return Apartment(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      price: price ?? this.price,
+      location: location ?? this.location,
+      bedrooms: bedrooms ?? this.bedrooms,
+      bathrooms: bathrooms ?? this.bathrooms,
+      area: area ?? this.area,
+      imageUrls: imageUrls ?? this.imageUrls,
+    );
+  }
 }

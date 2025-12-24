@@ -1,19 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:plproject/models/apartment.dart';
+import 'package:provider/provider.dart';
+import 'package:plproject/providers/apartment_provider.dart';
+import 'package:plproject/providers/user_provider.dart';
 import 'package:plproject/widgets/apartment_card.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // After the first frame, trigger the fetch operation.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ApartmentProvider>(context, listen: false).fetchApartments();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    // Mock data for display
-    final mockApartments = [
-      Apartment(id: 1, title: 'Ocean View Villa', price: 2800, location: 'Malibu, California', bedrooms: 4, bathrooms: 3, area: 320, imageUrls: ['https://via.placeholder.com/400x250/FF5722/FFFFFF?Text=Villa'], description: ''),
-      Apartment(id: 2, title: 'Urban Chic Loft', price: 1500, location: 'SoHo, New York', bedrooms: 2, bathrooms: 2, area: 150, imageUrls: ['https://via.placeholder.com/400x250/4CAF50/FFFFFF?Text=Loft'], description: ''),
-    ];
+    final userName = Provider.of<UserProvider>(context).user?.first_name ?? 'Guest';
 
     return Scaffold(
       appBar: AppBar(
@@ -21,7 +32,7 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Welcome Home!', style: theme.textTheme.titleMedium?.copyWith(color: Colors.white70)),
-            Text('Yasser Otani', style: theme.textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+            Text(userName, style: theme.textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
           ],
         ),
         actions: [
@@ -32,13 +43,36 @@ class HomeScreen extends StatelessWidget {
         ],
         toolbarHeight: 70,
       ),
-      body: ListView(
+      body: Column(
         children: [
           _buildSearchBar(context),
           _buildCategoryList(context),
           _buildSectionHeader(context, 'Featured Apartments'),
-          // Using the ApartmentCard we already built
-          ...mockApartments.map((apartment) => ApartmentCard(apartment: apartment)).toList(),
+          Expanded(
+            child: Consumer<ApartmentProvider>(
+              builder: (context, provider, child) {
+                switch (provider.status) {
+                  case ApartmentStatus.Loading:
+                    return const Center(child: CircularProgressIndicator());
+                  case ApartmentStatus.Error:
+                    return Center(child: Text('Error: ${provider.errorMessage}'));
+                  case ApartmentStatus.Loaded:
+                    if (provider.apartments.isEmpty) {
+                      return const Center(child: Text('No apartments available right now.'));
+                    }
+                    return ListView.builder(
+                      itemCount: provider.apartments.length,
+                      itemBuilder: (context, index) {
+                        return ApartmentCard(apartment: provider.apartments[index]);
+                      },
+                    );
+                  case ApartmentStatus.Idle:
+                  default:
+                    return const Center(child: Text('Pull to refresh'));
+                }
+              },
+            ),
+          ),
         ],
       ),
     );

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/providers/auth_provider.dart';
+import 'package:plproject/providers/user_provider.dart';
 import 'package:plproject/screens/auth/forgot_password_screen.dart';
 import 'package:plproject/screens/auth/register.dart';
 import 'package:plproject/utils/validators.dart';
@@ -26,19 +26,23 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _login() {
-    if (_formKey.currentState?.validate() ?? false) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      authProvider.login(_phoneController.text, _passwordController.text);
-    }
+  Future<void> _login(BuildContext context) async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    await userProvider.login(
+      _phoneController.text,
+      _passwordController.text,
+    );
+    // No navigation here! AuthGate will handle it.
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      body: Consumer<AuthProvider>(
-        builder: (context, authProvider, child) {
+      body: Consumer<UserProvider>(
+        builder: (context, userProvider, child) {
           return Form(
             key: _formKey,
             child: ListView(
@@ -69,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 20,),
 
-                if (authProvider.errorMessage != null)
+                if (userProvider.errorMessage != null)
                   Container(
                     padding: const EdgeInsets.all(12),
                     margin: const EdgeInsets.only(bottom: 20),
@@ -79,14 +83,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       border: Border.all(color: theme.colorScheme.error.withOpacity(0.3), width: 1),
                     ),
                     child: Text(
-                      authProvider.errorMessage!,
+                      userProvider.errorMessage!,
                       style: TextStyle(color: theme.colorScheme.error, fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
                   ),
 
                 MaterialButton(
-                  onPressed: authProvider.authStatus == AuthStatus.Authenticating ? null : _login,
+                  onPressed: userProvider.status == UserStatus.Loading ? null : () => _login(context),
                   padding: EdgeInsets.zero,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
                   child: Ink(
@@ -94,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Container(
                       height: 60,
                       alignment: Alignment.center,
-                      child: authProvider.authStatus == AuthStatus.Authenticating
+                      child: userProvider.status == UserStatus.Loading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : Text("Login", style: theme.textTheme.headlineMedium?.copyWith(color: Colors.white)),
                     ),

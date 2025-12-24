@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:plproject/providers/apartment_provider.dart';
-import 'package:plproject/providers/auth_provider.dart';
-import '../../models/apartment.dart';
-import '../../widgets/apartment_card.dart'; // Import the new custom widget
+import 'package:plproject/screens/auth/welcome_auth_screen.dart';
+import '../../widgets/apartment_card.dart';
 
 class Apartments extends StatefulWidget {
   const Apartments({super.key});
@@ -16,11 +16,9 @@ class _ApartmentsState extends State<Apartments> {
   @override
   void initState() {
     super.initState();
+    // The provider now gets the token from UserProvider automatically
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final token = Provider.of<AuthProvider>(context, listen: false).user?.token;
-      if (token != null) {
-        Provider.of<ApartmentProvider>(context, listen: false).fetchApartments(token);
-      }
+      Provider.of<ApartmentProvider>(context, listen: false).fetchApartments();
     });
   }
 
@@ -46,9 +44,8 @@ class _ApartmentsState extends State<Apartments> {
               return Center(child: Text('Error: ${provider.errorMessage}'));
             case ApartmentStatus.Loaded:
               if (provider.apartments.isEmpty) {
-                return const Center(child: Text('No apartments available at the moment.'));
+                return const Center(child: Text('No apartments available.'));
               }
-              // Now we just build a list of our custom ApartmentCard widgets
               return ListView.builder(
                 itemCount: provider.apartments.length,
                 itemBuilder: (context, index) {
@@ -65,6 +62,7 @@ class _ApartmentsState extends State<Apartments> {
   }
 
   void _showLogoutDialog(BuildContext context) {
+    // This should ideally use the UserProvider as well, but for now this is fine
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -75,9 +73,16 @@ class _ApartmentsState extends State<Apartments> {
             TextButton(child: const Text('Cancel'), onPressed: () => Navigator.of(dialogContext).pop()),
             TextButton(
               child: const Text('Logout'),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                Provider.of<AuthProvider>(context, listen: false).logout();
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('auth_token');
+                if (mounted) {
+                  Navigator.of(dialogContext).pop();
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => const WelcomeAuthScreen()),
+                    (route) => false,
+                  );
+                }
               },
             ),
           ],

@@ -2,14 +2,15 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/models/user.dart';
-import 'package:plproject/providers/auth_provider.dart';
-import 'package:plproject/widgets/CTextField.dart';
-
+import 'package:plproject/providers/user_provider.dart';
+import '../../widgets/CTextField.dart';
 import '../../theme/app_theme.dart';
 
 class CompleteProfile extends StatefulWidget {
-  const CompleteProfile({super.key});
+  final String phone;
+  final String password;
+
+  const CompleteProfile({super.key, required this.phone, required this.password});
 
   @override
   State<CompleteProfile> createState() => _CompleteProfileState();
@@ -33,18 +34,21 @@ class _CompleteProfileState extends State<CompleteProfile> {
     super.dispose();
   }
 
-  Future<void> _registerProfile() async {
+  Future<void> _registerProfile(BuildContext context) async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final profileData = User(
-      first_name: _firstNameController.text,
-      last_name: _lastNameController.text,
-      dateOfBirth: DateTime.tryParse(_dobController.text),
-    );
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
 
-    // Pass the files to the provider
-    await authProvider.register(profileData, _personalImageFile, _idCardImageFile);
+    await userProvider.register(
+      phone: widget.phone,
+      password: widget.password,
+      firstName: _firstNameController.text,
+      lastName: _lastNameController.text,
+      dateOfBirth: DateTime.tryParse(_dobController.text),
+      personalImage: _personalImageFile,
+      idCardImage: _idCardImageFile,
+    );
+    // No navigation here! AuthGate will handle it after the state changes.
   }
 
   Future<void> _pickImage(bool isPersonal) async {
@@ -65,8 +69,8 @@ class _CompleteProfileState extends State<CompleteProfile> {
     final theme = Theme.of(context);
     return Scaffold(
        appBar: AppBar(title: const Text("Complete Your Profile"), automaticallyImplyLeading: false),
-       body: Consumer<AuthProvider>(
-        builder: (context, authProvider, child) {
+       body: Consumer<UserProvider>(
+        builder: (context, userProvider, child) {
           return Form(
             key: _formKey,
             child: ListView(
@@ -84,15 +88,12 @@ class _CompleteProfileState extends State<CompleteProfile> {
                  CTextField(controller: _dobController, hintText: "YYYY-MM-DD", textInputType: TextInputType.datetime),
                  const SizedBox(height: 30,),
 
-                 // --- Image Upload UI ---
                  _buildImagePicker(theme, 'Personal Photo', _personalImageFile, () => _pickImage(true)),
                  const SizedBox(height: 20),
                  _buildImagePicker(theme, 'ID Card Photo', _idCardImageFile, () => _pickImage(false)),
-                 // --- End Image Upload UI ---
-
                  const SizedBox(height: 30,),
 
-                if (authProvider.errorMessage != null && authProvider.authStatus != AuthStatus.Authenticating)
+                if (userProvider.status == UserStatus.Error && userProvider.errorMessage != null)
                   Container(
                      padding: const EdgeInsets.all(12),
                      margin: const EdgeInsets.only(bottom: 20),
@@ -102,14 +103,14 @@ class _CompleteProfileState extends State<CompleteProfile> {
                         border: Border.all(color: theme.colorScheme.error.withOpacity(0.3), width: 1),
                       ),
                      child: Text(
-                       authProvider.errorMessage!,
+                       userProvider.errorMessage!,
                        style: TextStyle(color: theme.colorScheme.error, fontWeight: FontWeight.bold),
                        textAlign: TextAlign.center,
                      ),
                   ),
 
                  MaterialButton(
-                   onPressed: authProvider.authStatus == AuthStatus.Authenticating ? null : _registerProfile,
+                   onPressed: userProvider.status == UserStatus.Loading ? null : () => _registerProfile(context),
                    padding: EdgeInsets.zero,
                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
                    child: Ink(
@@ -117,7 +118,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
                       child: Container(
                          height: 60,
                          alignment: Alignment.center,
-                         child: authProvider.authStatus == AuthStatus.Authenticating
+                         child: userProvider.status == UserStatus.Loading
                             ? const CircularProgressIndicator(color: Colors.white)
                             : Text("Register", style: theme.textTheme.headlineMedium?.copyWith(color: Colors.white)),
                       ),

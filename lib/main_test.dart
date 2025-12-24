@@ -24,7 +24,7 @@ class UITestbedApp extends StatelessWidget {
         title: "UI Testbed",
         theme: AppTheme.lightTheme,
         // Directly display the screen you want to test.
-        home: const CompleteProfile(),
+       // home: const CompleteProfile(),
       ),
     );
   }

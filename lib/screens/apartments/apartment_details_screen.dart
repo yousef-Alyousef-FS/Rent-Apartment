@@ -1,110 +1,151 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:plproject/models/apartment.dart';
+import 'package:plproject/providers/booking_provider.dart';
+import 'package:plproject/screens/booking/booking_success_screen.dart';
 
-class ApartmentDetailsScreen extends StatelessWidget {
+class ApartmentDetailsScreen extends StatefulWidget {
   final Apartment apartment;
-
   const ApartmentDetailsScreen({super.key, required this.apartment});
+
+  @override
+  State<ApartmentDetailsScreen> createState() => _ApartmentDetailsScreenState();
+}
+
+class _ApartmentDetailsScreenState extends State<ApartmentDetailsScreen> {
+  bool _isBooking = false;
+
+  Future<void> _createBooking() async {
+    setState(() {
+      _isBooking = true;
+    });
+
+    final bookingProvider = Provider.of<BookingProvider>(context, listen: false);
+    // Using mock dates for now, as we haven't built a date picker UI yet
+    final checkIn = DateTime.now().add(const Duration(days: 10));
+    final checkOut = DateTime.now().add(const Duration(days: 17));
+
+    final success = await bookingProvider.createBooking(
+      apartmentId: widget.apartment.id,
+      checkIn: checkIn,
+      checkOut: checkOut,
+    );
+
+    if (mounted) {
+      if (success) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const BookingSuccessScreen()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(bookingProvider.errorMessage ?? 'Failed to create booking. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+
+    setState(() {
+      _isBooking = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(apartment.title),
+        title: Text(widget.apartment.title),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 1. Image Carousel
-            _buildImageCarousel(context),
-
-            // 2. Main Info Section
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(apartment.title, style: theme.textTheme.displaySmall),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(Icons.location_on_outlined, size: 18, color: Colors.grey[600]),
-                      const SizedBox(width: 4),
-                      Expanded(child: Text(apartment.location, style: theme.textTheme.titleMedium?.copyWith(color: Colors.grey[700]))),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text('${apartment.price.toStringAsFixed(0)} / month', style: theme.textTheme.headlineMedium?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
-                  const Divider(height: 32, thickness: 1),
-
-                  // 3. Specs Section
-                  _buildSpecsRow(theme),
-                  const Divider(height: 32, thickness: 1),
-                  
-                  // 4. Description
-                  Text("Description", style: theme.textTheme.headlineSmall),
-                  const SizedBox(height: 8),
-                  Text(apartment.description, style: theme.textTheme.bodyLarge?.copyWith(height: 1.5)),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-      // 5. Floating Action Button
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () { /* TODO: Implement booking logic */ },
-        label: const Text("Book Now"),
-        icon: const Icon(Icons.shopping_cart_checkout),
-        backgroundColor: theme.colorScheme.secondary,
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-    );
-  }
-
-  Widget _buildImageCarousel(BuildContext context) {
-    return SizedBox(
-      height: 250,
-      child: PageView.builder(
-        itemCount: apartment.imageUrls.isNotEmpty ? apartment.imageUrls.length : 1,
-        itemBuilder: (context, index) {
-          final imageUrl = apartment.imageUrls.isNotEmpty 
-              ? apartment.imageUrls[index] 
-              : 'https://via.placeholder.com/400x250?text=No+Image';
-          return Image.network(
-            imageUrl,
+      body: ListView(
+        children: [
+          Image.network(
+            widget.apartment.imageUrls.isNotEmpty ? widget.apartment.imageUrls[0] : '',
+            height: 250,
+            width: double.infinity,
             fit: BoxFit.cover,
-            loadingBuilder: (context, child, progress) => progress == null ? child : const Center(child: CircularProgressIndicator()),
-            errorBuilder: (context, error, stack) => const Icon(Icons.broken_image, size: 100, color: Colors.grey),
-          );
-        },
+            errorBuilder: (context, error, stackTrace) => Container(height: 250, color: Colors.grey[200]),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(widget.apartment.title, style: theme.textTheme.headlineMedium),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on_outlined, size: 16, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Text(widget.apartment.location, style: theme.textTheme.bodyLarge),
+                  ],
+                ),
+                const Divider(height: 32),
+                Text('Details', style: theme.textTheme.headlineSmall),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildDetailIcon(context, Icons.bed_outlined, '${widget.apartment.bedrooms} Beds'),
+                    _buildDetailIcon(context, Icons.bathtub_outlined, '${widget.apartment.bathrooms} Baths'),
+                    _buildDetailIcon(context, Icons.area_chart_outlined, '${widget.apartment.area} sqft'),
+                  ],
+                ),
+                const Divider(height: 32),
+                Text('Description', style: theme.textTheme.headlineSmall),
+                const SizedBox(height: 8),
+                Text(widget.apartment.description, style: theme.textTheme.bodyLarge?.copyWith(color: Colors.grey[700])),
+              ],
+            ),
+          ),
+        ],
       ),
+      bottomNavigationBar: _buildBookingBar(theme),
     );
   }
 
-  Widget _buildSpecsRow(ThemeData theme) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        _buildSpecItem(theme, Icons.bed_outlined, apartment.bedrooms.toString(), "Bedrooms"),
-        _buildSpecItem(theme, Icons.bathtub_outlined, apartment.bathrooms.toString(), "Bathrooms"),
-        _buildSpecItem(theme, Icons.area_chart_outlined, '${apartment.area} sqft', "Area"),
-      ],
-    );
-  }
-
-  Widget _buildSpecItem(ThemeData theme, IconData icon, String value, String label) {
+  Widget _buildDetailIcon(BuildContext context, IconData icon, String label) {
     return Column(
       children: [
-        Icon(icon, size: 30, color: theme.colorScheme.primary),
-        const SizedBox(height: 4),
-        Text(value, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 2),
-        Text(label, style: theme.textTheme.bodySmall),
+        Icon(icon, size: 32, color: Theme.of(context).primaryColor),
+        const SizedBox(height: 8),
+        Text(label, style: Theme.of(context).textTheme.bodyMedium),
       ],
+    );
+  }
+
+  Widget _buildBookingBar(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10)],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Price', style: theme.textTheme.bodyMedium),
+              Text('\$${widget.apartment.price.toStringAsFixed(0)} / night', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            ],
+          ),
+          ElevatedButton(
+            onPressed: _isBooking ? null : _createBooking,
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+              backgroundColor: theme.primaryColor,
+              foregroundColor: Colors.white,
+            ),
+            child: _isBooking
+                ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
+                : const Text('Book Now'),
+          ),
+        ],
+      ),
     );
   }
 }

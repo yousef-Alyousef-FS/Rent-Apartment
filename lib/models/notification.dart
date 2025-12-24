@@ -22,4 +22,31 @@ class Notification {
       isRead: json['read_at'] != null,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    // This is useful if you ever need to send notification data, though it's less common.
+    return {
+      'id': id,
+      'title': title,
+      'message': message,
+      'created_at': createdAt.toIso8601String(),
+      'is_read': isRead,
+    };
+  }
+
+  Notification copyWith({
+    String? id,
+    String? title,
+    String? message,
+    DateTime? createdAt,
+    bool? isRead,
+  }) {
+    return Notification(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      message: message ?? this.message,
+      createdAt: createdAt ?? this.createdAt,
+      isRead: isRead ?? this.isRead,
+    );
+  }
 }

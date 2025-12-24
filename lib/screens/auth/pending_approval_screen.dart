@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:plproject/providers/auth_provider.dart';
+import 'package:plproject/screens/auth/welcome_auth_screen.dart';
 
 class PendingApprovalScreen extends StatelessWidget {
   const PendingApprovalScreen({super.key});
@@ -11,11 +10,18 @@ class PendingApprovalScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Registration Pending'),
+        automaticallyImplyLeading: false, // Prevent the back button
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Logout',
-            onPressed: () => Provider.of<AuthProvider>(context, listen: false).logout(),
+            onPressed: () {
+              // Navigate back to the welcome screen and remove all routes
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const WelcomeAuthScreen()),
+                (route) => false,
+              );
+            },
           ),
         ],
       ),

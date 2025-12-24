@@ -4,8 +4,6 @@ import 'package:plproject/models/apartment.dart';
 // --- Import ALL screens ---
 
 // Auth
-import '../apartments/apartment.dart';
-import '../apartments/apartment_details_screen.dart';
 import '../auth/welcome_auth_screen.dart';
 import '../auth/login.dart';
 import '../auth/register.dart';
@@ -16,12 +14,12 @@ import '../auth/pending_approval_screen.dart';
 // Main App
 import '../main/home_screen.dart';
 import '../main/explore_screen.dart';
-import '../apartments/apartment_details_screen.dart';
+import '../apartments/apartment_details_screen.dart'; // Corrected Path
 import '../main/search_screen.dart';
 import '../main/filter_screen.dart';
 import '../main/location_map_screen.dart';
 import '../main/settings_screen.dart';
-
+import '../apartments/apartment.dart'; // Corrected Path
 
 // Booking
 import '../booking/booking_screen.dart';
@@ -92,7 +90,7 @@ class ScreenGallery extends StatelessWidget {
           _buildNavButton(context, 'Login Screen', const LoginScreen()),
           _buildNavButton(context, 'Register Screen', const RegisterPage()),
           _buildNavButton(context, 'Forgot Password', const ForgotPasswordScreen()),
-          _buildNavButton(context, 'Complete Profile', const CompleteProfile()),
+          _buildNavButton(context, 'Complete Profile', CompleteProfile(phone: 'mock', password: 'mock')), // Added mock data
           _buildNavButton(context, 'Pending Approval', const PendingApprovalScreen()),
           
           _buildCategoryHeader('Main App Flow'),
@@ -109,7 +107,7 @@ class ScreenGallery extends StatelessWidget {
           _buildNavButton(context, 'Booking Screen', BookingScreen()),
           _buildNavButton(context, 'My Bookings List', const BookingsListScreen()),
           _buildNavButton(context, 'Booking Detail', const BookingDetailScreen()),
-          _buildNavButton(context, 'Write a Review', const ReviewScreen()),
+          _buildNavButton(context, 'Write a Review', ReviewScreen(apartmentId: 1)), // Added mock data
           _buildNavButton(context, 'Booking Success', const BookingSuccessScreen()),
 
           _buildCategoryHeader('Owner Flow'),

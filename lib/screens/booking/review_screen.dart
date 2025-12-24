@@ -1,19 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:plproject/providers/review_provider.dart';
 
 class ReviewScreen extends StatefulWidget {
-  const ReviewScreen({super.key});
+  // A real implementation would require the apartment ID to know where to post the review
+  final int apartmentId;
+
+  const ReviewScreen({super.key, required this.apartmentId});
 
   @override
   State<ReviewScreen> createState() => _ReviewScreenState();
 }
 
 class _ReviewScreenState extends State<ReviewScreen> {
-  int _rating = 0; // 0 means no rating yet
+  int _rating = 0; 
   final _reviewController = TextEditingController();
+  
+  Future<void> _submitReview() async {
+    if (_rating == 0 || _reviewController.text.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please provide a rating and a comment.')),
+        );
+        return;
+    }
+
+    final reviewProvider = Provider.of<ReviewProvider>(context, listen: false);
+
+    final success = await reviewProvider.addReview(
+        apartmentId: widget.apartmentId,
+        rating: _rating,
+        comment: _reviewController.text,
+    );
+
+    if (mounted) {
+        if (success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Review submitted successfully!'), backgroundColor: Colors.green),
+            );
+            Navigator.of(context).pop();
+        } else {
+             ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(reviewProvider.errorMessage ?? 'Failed to submit review.'), backgroundColor: Colors.red),
+            );
+        }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final reviewProvider = Provider.of<ReviewProvider>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Write a Review'),
@@ -22,7 +59,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
         padding: const EdgeInsets.all(16.0),
         children: [
           Text(
-            'How was your stay at Ocean View Villa?', // Placeholder title
+            'How was your stay?', // More generic title
             style: theme.textTheme.headlineSmall,
             textAlign: TextAlign.center,
           ),
@@ -45,7 +82,20 @@ class _ReviewScreenState extends State<ReviewScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: _buildSubmitButton(theme),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ElevatedButton(
+            onPressed: reviewProvider.status == ReviewStatus.Loading ? null : _submitReview,
+            style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 50),
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: theme.colorScheme.onPrimary,
+            ),
+            child: reviewProvider.status == ReviewStatus.Loading
+                ? const CircularProgressIndicator(color: Colors.white)
+                : const Text('Submit Review'),
+        ),
+      ),
     );
   }
 
@@ -66,24 +116,6 @@ class _ReviewScreenState extends State<ReviewScreen> {
           },
         );
       }),
-    );
-  }
-
-  Widget _buildSubmitButton(ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: ElevatedButton(
-        onPressed: (_rating > 0 && _reviewController.text.isNotEmpty) ? () {
-          // TODO: Submit review logic
-          Navigator.pop(context);
-        } : null, // Disable button if no rating or review
-        style: ElevatedButton.styleFrom(
-          minimumSize: const Size(double.infinity, 50),
-          backgroundColor: theme.colorScheme.primary,
-          foregroundColor: theme.colorScheme.onPrimary,
-        ),
-        child: const Text('Submit Review'),
-      ),
     );
   }
 }

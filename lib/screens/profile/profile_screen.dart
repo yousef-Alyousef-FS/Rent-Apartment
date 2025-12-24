@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:plproject/models/user.dart';
+import 'package:plproject/providers/user_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -6,69 +9,111 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Profile'),
-      ),
-      body: ListView(
-        children: [
-          _buildProfileHeader(theme, context),
-          const SizedBox(height: 24),
-          _buildProfileMenuItem(
-            context,
-            icon: Icons.bookmark_border,
-            title: 'My Bookings',
-            onTap: () { /* TODO: Navigate to Bookings List */ },
+    // Use a consumer to react to changes in UserProvider (like logout)
+    return Consumer<UserProvider>(
+      builder: (context, userProvider, child) {
+        final user = userProvider.user;
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('My Profile'),
+            automaticallyImplyLeading: false,
           ),
-           _buildProfileMenuItem(
-            context,
-            icon: Icons.favorite_border,
-            title: 'Favorites',
-            onTap: () { /* TODO: Navigate to Favorites Screen */ },
+          body: ListView(
+            children: [
+              _buildProfileHeader(theme as BuildContext, context as ThemeData, user),
+              const SizedBox(height: 24),
+              _buildProfileMenuItem(
+                context,
+                icon: Icons.bookmark_border,
+                title: 'My Bookings',
+                onTap: () { /* TODO: Navigate to Bookings List */ },
+              ),
+              _buildProfileMenuItem(
+                context,
+                icon: Icons.favorite_border,
+                title: 'Favorites',
+                onTap: () { /* TODO: Navigate to Favorites Screen */ },
+              ),
+              _buildProfileMenuItem(
+                context,
+                icon: Icons.reviews_outlined,
+                title: 'My Reviews',
+                onTap: () { /* TODO: Navigate to My Reviews Screen */ },
+              ),
+              _buildProfileMenuItem(
+                context,
+                icon: Icons.settings_outlined,
+                title: 'Settings',
+                onTap: () { /* TODO: Navigate to Settings Screen */ },
+              ),
+              const Divider(height: 32),
+              _buildProfileMenuItem(
+                context,
+                icon: Icons.logout,
+                title: 'Logout',
+                color: Colors.red[700],
+                // Connect the logout button to the provider method
+                onTap: () => _showLogoutDialog(context, userProvider),
+              ),
+            ],
           ),
-          _buildProfileMenuItem(
-            context,
-            icon: Icons.reviews_outlined,
-            title: 'My Reviews',
-            onTap: () { /* TODO: Navigate to My Reviews Screen */ },
-          ),
-           _buildProfileMenuItem(
-            context,
-            icon: Icons.settings_outlined,
-            title: 'Settings',
-            onTap: () { /* TODO: Navigate to Settings Screen */ },
-          ),
-          const Divider(height: 32),
-          _buildProfileMenuItem(
-            context,
-            icon: Icons.logout,
-            title: 'Logout',
-            color: Colors.red[700],
-            onTap: () { /* TODO: Implement logout */ },
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildProfileHeader(ThemeData theme, BuildContext context) {
+  void _showLogoutDialog(BuildContext context, UserProvider userProvider) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Confirm Logout'),
+          content: const Text('Are you sure you want to log out?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(dialogContext).pop(),
+            ),
+            TextButton(
+              child: const Text('Logout'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Close the dialog first
+                userProvider.logout(); // Then call the logout method
+                // AuthGate will handle navigation automatically.
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildProfileHeader(BuildContext context, ThemeData theme, User? user) {
     return InkWell(
       onTap: () { /* TODO: Navigate to Edit Profile */ },
       child: Container(
         padding: const EdgeInsets.all(24.0),
         child: Row(
           children: [
-            const CircleAvatar(
+            CircleAvatar(
               radius: 40,
-              // backgroundImage: NetworkImage('...'), // Placeholder
-              child: Icon(Icons.person, size: 40),
+              backgroundImage: (user?.profile_image != null)
+                  ? NetworkImage(user!.profile_image!)
+                  : null,
+              child: (user?.profile_image == null)
+                  ? const Icon(Icons.person, size: 40)
+                  : null,
             ),
             const SizedBox(width: 20),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Yasser Otani', style: theme.textTheme.headlineSmall), // Mock Name
+                  Text(
+                    user != null ? '${user.first_name} ${user.last_name}' : 'Guest',
+                    style: theme.textTheme.headlineSmall,
+                  ),
                   const SizedBox(height: 4),
                   Row(
                     children: [

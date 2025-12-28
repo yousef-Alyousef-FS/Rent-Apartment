@@ -8,6 +8,9 @@ class Apartment {
   final int bathrooms;
   final int area;
   final List<String> imageUrls;
+  // --- ADDED FOR RATING FEATURE ---
+  final double? average_rating;
+  final int? reviews_count;
 
   Apartment({
     required this.id,
@@ -19,6 +22,8 @@ class Apartment {
     required this.bathrooms,
     required this.area,
     required this.imageUrls,
+    this.average_rating,
+    this.reviews_count,
   });
 
   factory Apartment.fromJson(Map<String, dynamic> json) {
@@ -32,6 +37,9 @@ class Apartment {
       bathrooms: json['bathrooms'] as int,
       area: json['area'] as int,
       imageUrls: List<String>.from(json['image_urls'] ?? []),
+      // Parse rating fields from JSON
+      average_rating: (json['average_rating'] as num?)?.toDouble(),
+      reviews_count: json['reviews_count'] as int?,
     );
   }
 
@@ -46,6 +54,8 @@ class Apartment {
       'bathrooms': bathrooms,
       'area': area,
       'image_urls': imageUrls,
+      'average_rating': average_rating,
+      'reviews_count': reviews_count,
     };
   }
 
@@ -59,6 +69,8 @@ class Apartment {
     int? bathrooms,
     int? area,
     List<String>? imageUrls,
+    double? average_rating,
+    int? reviews_count,
   }) {
     return Apartment(
       id: id ?? this.id,
@@ -70,6 +82,8 @@ class Apartment {
       bathrooms: bathrooms ?? this.bathrooms,
       area: area ?? this.area,
       imageUrls: imageUrls ?? this.imageUrls,
+      average_rating: average_rating ?? this.average_rating,
+      reviews_count: reviews_count ?? this.reviews_count,
     );
   }
 }

@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:plproject/providers/review_provider.dart';
 
 class ReviewScreen extends StatefulWidget {
-  // A real implementation would require the apartment ID to know where to post the review
   final int apartmentId;
 
   const ReviewScreen({super.key, required this.apartmentId});
@@ -17,9 +16,15 @@ class _ReviewScreenState extends State<ReviewScreen> {
   final _reviewController = TextEditingController();
   
   Future<void> _submitReview() async {
-    if (_rating == 0 || _reviewController.text.isEmpty) {
+    if (_rating == 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please provide a rating and a comment.')),
+            const SnackBar(content: Text('Please select a rating.')),
+        );
+        return;
+    }
+    if (_reviewController.text.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please write a comment.')),
         );
         return;
     }
@@ -47,10 +52,14 @@ class _ReviewScreenState extends State<ReviewScreen> {
   }
 
   @override
+  void dispose() {
+    _reviewController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final reviewProvider = Provider.of<ReviewProvider>(context);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Write a Review'),
@@ -59,7 +68,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
         padding: const EdgeInsets.all(16.0),
         children: [
           Text(
-            'How was your stay?', // More generic title
+            'How was your stay?',
             style: theme.textTheme.headlineSmall,
             textAlign: TextAlign.center,
           ),
@@ -84,16 +93,20 @@ class _ReviewScreenState extends State<ReviewScreen> {
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ElevatedButton(
-            onPressed: reviewProvider.status == ReviewStatus.Loading ? null : _submitReview,
-            style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-                backgroundColor: theme.colorScheme.primary,
-                foregroundColor: theme.colorScheme.onPrimary,
-            ),
-            child: reviewProvider.status == ReviewStatus.Loading
-                ? const CircularProgressIndicator(color: Colors.white)
-                : const Text('Submit Review'),
+        child: Consumer<ReviewProvider>(
+          builder: (context, reviewProvider, child) {
+            return ElevatedButton(
+                onPressed: reviewProvider.status == ReviewStatus.Loading ? null : _submitReview,
+                style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 50),
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
+                ),
+                child: reviewProvider.status == ReviewStatus.Loading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text('Submit Review'),
+            );
+          },
         ),
       ),
     );

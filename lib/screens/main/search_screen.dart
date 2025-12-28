@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:plproject/models/apartment.dart';
+import 'package:provider/provider.dart';
+import 'package:plproject/providers/apartment_provider.dart';
 import 'package:plproject/widgets/apartment_card.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -10,74 +12,79 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  bool _isSearching = false;
+  final _searchController = TextEditingController();
+  Timer? _debounce;
 
-  // Mock data for search results
-  final List<Apartment> _searchResults = [
-    Apartment(id: 10, title: 'Downtown Penthouse', price: 5000, location: 'Los Angeles, CA', bedrooms: 3, bathrooms: 3, area: 250, imageUrls: ['https://via.placeholder.com/400x250/F44336/FFFFFF?Text=Penthouse'], description: ''),
-    Apartment(id: 11, title: 'Quiet Suburban Home', price: 2200, location: 'Austin, TX', bedrooms: 4, bathrooms: 2, area: 280, imageUrls: ['https://via.placeholder.com/400x250/2196F3/FFFFFF?Text=Home'], description: ''),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_onSearchChanged);
+  }
 
-  void _performSearch(String query) {
-    setState(() {
-      _isSearching = query.isNotEmpty;
+  void _onSearchChanged() {
+    // Cancel the old timer if it exists
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    
+    // Start a new timer
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      if (_searchController.text.isNotEmpty) {
+        Provider.of<ApartmentProvider>(context, listen: false)
+            .fetchApartments(filters: {'search': _searchController.text});
+      }
     });
-    // In a real app, you would filter results here based on the query
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    _debounce?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // A search bar directly in the AppBar
         title: TextField(
           controller: _searchController,
-          autofocus: true, // Automatically focus the search bar
+          autofocus: true,
           decoration: const InputDecoration(
-            hintText: 'Search by city or address...',
+            hintText: 'Type to search live...',
             border: InputBorder.none,
             hintStyle: TextStyle(color: Colors.white70),
           ),
-          style: const TextStyle(color: Colors.white, fontSize: 18),
-          onChanged: _performSearch,
+          style: const TextStyle(color: Colors.white),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.clear),
-            onPressed: () {
-              _searchController.clear();
-              _performSearch('');
-            },
-          )
-        ],
+        // The search icon is no longer needed as search is live
       ),
-      body: _isSearching ? _buildSearchResults() : _buildInitialView(),
-    );
-  }
+      body: Consumer<ApartmentProvider>(
+        builder: (context, provider, child) {
+          // Show initial message only if the search box is empty
+          if (_searchController.text.isEmpty) {
+            return const Center(child: Text('Start typing to search for apartments.'));
+          }
+          if (provider.status == ApartmentStatus.Loading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (provider.status == ApartmentStatus.Error) {
+            return Center(child: Text('Error: ${provider.errorMessage}'));
+          }
+          if (provider.apartments.isEmpty) {
+            return const Center(child: Text('No apartments match your search.'));
+          }
 
-  Widget _buildInitialView() {
-    // This view is shown before the user starts typing
-    return ListView(
-      padding: const EdgeInsets.all(16.0),
-      children: const [
-        Text('Recent Searches', style: TextStyle(fontWeight: FontWeight.bold)),
-        ListTile(leading: Icon(Icons.history), title: Text('New York')),
-        ListTile(leading: Icon(Icons.history), title: Text('Paris')),
-      ],
-    );
-  }
-
-  Widget _buildSearchResults() {
-    // This view shows the results after the user types something
-    if (_searchResults.isEmpty) {
-      return const Center(child: Text('No results found.'));
-    }
-    return ListView.builder(
-      itemCount: _searchResults.length,
-      itemBuilder: (context, index) {
-        return ApartmentCard(apartment: _searchResults[index]);
-      },
+          return ListView.builder(
+            itemCount: provider.apartments.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: ApartmentCard(apartment: provider.apartments[index]),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

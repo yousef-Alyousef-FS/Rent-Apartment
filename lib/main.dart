@@ -6,6 +6,7 @@ import 'package:plproject/providers/admin_provider.dart';
 import 'package:plproject/providers/booking_provider.dart';
 import 'package:plproject/providers/review_provider.dart';
 import 'package:plproject/providers/user_provider.dart';
+import 'package:plproject/providers/theme_provider.dart'; // Import the new provider
 import 'package:plproject/screens/auth/auth_gate.dart';
 
 void main() async {
@@ -20,8 +21,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (context) => ThemeProvider()), // Add ThemeProvider
         ChangeNotifierProvider(create: (context) => UserProvider()),
-        
         ChangeNotifierProxyProvider<UserProvider, ApartmentProvider>(
           create: (context) => ApartmentProvider(),
           update: (context, userProvider, apartmentProvider) {
@@ -29,7 +30,6 @@ class MyApp extends StatelessWidget {
             return apartmentProvider!;
           },
         ),
-
         ChangeNotifierProxyProvider<UserProvider, BookingProvider>(
           create: (context) => BookingProvider(),
           update: (context, userProvider, bookingProvider) {
@@ -37,7 +37,6 @@ class MyApp extends StatelessWidget {
             return bookingProvider!;
           },
         ),
-
         ChangeNotifierProxyProvider<UserProvider, ReviewProvider>(
           create: (context) => ReviewProvider(),
           update: (context, userProvider, reviewProvider) {
@@ -45,14 +44,19 @@ class MyApp extends StatelessWidget {
             return reviewProvider!;
           },
         ),
-        
         ChangeNotifierProvider(create: (context) => AdminProvider()),
       ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: "Rent Apartments",
-        theme: AppTheme.lightTheme,
-        home: const AuthGate(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: "Rent Apartments",
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme, // Set the dark theme
+            themeMode: themeProvider.themeMode, // Control the theme mode
+            home: const AuthGate(),
+          );
+        },
       ),
     );
   }

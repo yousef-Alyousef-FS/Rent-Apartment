@@ -1,26 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:plproject/models/apartment.dart';
+import 'package:plproject/providers/apartment_provider.dart';
+import 'package:plproject/screens/owner/edit_apartment_screen.dart';
 
-class MyApartmentsScreen extends StatelessWidget {
+class MyApartmentsScreen extends StatefulWidget {
   const MyApartmentsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Mock data for display
-    final myApartments = [
-      Apartment(id: 1, title: 'Ocean View Villa', price: 2800, location: 'Malibu, California', bedrooms: 4, bathrooms: 3, area: 320, imageUrls: ['https://via.placeholder.com/400x250/FF5722/FFFFFF?Text=Villa'], description: ''),
-      Apartment(id: 2, title: 'Urban Chic Loft', price: 1500, location: 'SoHo, New York', bedrooms: 2, bathrooms: 2, area: 150, imageUrls: ['https://via.placeholder.com/400x250/4CAF50/FFFFFF?Text=Loft'], description: ''),
-    ];
+  State<MyApartmentsScreen> createState() => _MyApartmentsScreenState();
+}
 
+class _MyApartmentsScreenState extends State<MyApartmentsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ApartmentProvider>(context, listen: false).fetchMyApartments();
+    });
+  }
+
+  List<Apartment> _getMockApartments() {
+    return [
+      Apartment(id: 101, title: 'My First Mock Apartment', description: 'Mock description', location: 'City Center', price: 120, bedrooms: 2, bathrooms: 1, area: 90, imageUrls: [], average_rating: 4.5, reviews_count: 15),
+      Apartment(id: 102, title: 'My Second Mock Apartment', description: 'Mock description', location: 'Suburb Area', price: 95, bedrooms: 3, bathrooms: 2, area: 120, imageUrls: [], average_rating: 4.2, reviews_count: 8),
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Apartments'),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(8.0),
-        itemCount: myApartments.length,
-        itemBuilder: (context, index) {
-          return _buildMyApartmentCard(context, myApartments[index]);
+      body: Consumer<ApartmentProvider>(
+        builder: (context, provider, child) {
+          if (provider.status == ApartmentStatus.Loading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (provider.status == ApartmentStatus.Error) {
+            return Center(child: Text('Error: ${provider.errorMessage}'));
+          }
+
+          final apartments = provider.myApartments.isEmpty ? _getMockApartments() : provider.myApartments;
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(8.0),
+            itemCount: apartments.length,
+            itemBuilder: (context, index) {
+              return _buildMyApartmentCard(context, apartments[index]);
+            },
+          );
         },
       ),
     );
@@ -41,7 +71,11 @@ class MyApartmentsScreen extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.network(apartment.imageUrls[0], width: 100, height: 100, fit: BoxFit.cover),
+                  child: Image.network(
+                    apartment.imageUrls.isNotEmpty ? apartment.imageUrls[0] : '',
+                    width: 100, height: 100, fit: BoxFit.cover,
+                    errorBuilder: (ctx, err, st) => Container(width: 100, height: 100, color: Colors.grey[200]),
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -52,13 +86,7 @@ class MyApartmentsScreen extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(apartment.location, style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600])),
                       const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Icon(Icons.star, color: Colors.amber, size: 18),
-                          const SizedBox(width: 4),
-                          Text('4.8 (24 reviews)', style: theme.textTheme.bodyMedium),
-                        ],
-                      ),
+                      _buildRatingDisplay(theme, apartment),
                     ],
                   ),
                 ),
@@ -71,18 +99,34 @@ class MyApartmentsScreen extends StatelessWidget {
                 TextButton.icon(
                   icon: const Icon(Icons.edit_outlined),
                   label: const Text('Edit'),
-                  onPressed: () { /* TODO: Navigate to Edit Apartment */ },
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => EditApartmentScreen(apartment: apartment)),
+                    );
+                  },
                 ),
                 TextButton.icon(
                   icon: const Icon(Icons.bookmark_border),
                   label: const Text('View Bookings'),
-                  onPressed: () { /* TODO: Navigate to Owner Bookings */ },
+                  onPressed: () { /* TODO */ },
                 ),
               ],
             )
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildRatingDisplay(ThemeData theme, Apartment apartment) {
+    final rating = apartment.average_rating ?? 0.0;
+    final reviewCount = apartment.reviews_count ?? 0;
+    return Row(
+      children: [
+        const Icon(Icons.star, color: Colors.amber, size: 18),
+        const SizedBox(width: 4),
+        Text('$rating ($reviewCount reviews)', style: theme.textTheme.bodyMedium),
+      ],
     );
   }
 }

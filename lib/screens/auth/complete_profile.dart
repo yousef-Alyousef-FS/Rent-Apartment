@@ -39,16 +39,17 @@ class _CompleteProfileState extends State<CompleteProfile> {
 
     final userProvider = Provider.of<UserProvider>(context, listen: false);
 
+    // Pass the parameters directly as the provider now expects them.
     await userProvider.register(
       phone: widget.phone,
       password: widget.password,
       firstName: _firstNameController.text,
       lastName: _lastNameController.text,
-      dateOfBirth: DateTime.tryParse(_dobController.text),
+      dateOfBirth: _dobController.text, // Pass as String
       personalImage: _personalImageFile,
       idCardImage: _idCardImageFile,
     );
-    // No navigation here! AuthGate will handle it after the state changes.
+    // No navigation needed. AuthGate will handle the state change.
   }
 
   Future<void> _pickImage(bool isPersonal) async {
@@ -109,21 +110,16 @@ class _CompleteProfileState extends State<CompleteProfile> {
                      ),
                   ),
 
-                 MaterialButton(
-                   onPressed: userProvider.status == UserStatus.Loading ? null : () => _registerProfile(context),
-                   padding: EdgeInsets.zero,
-                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                   child: Ink(
-                      decoration: BoxDecoration(gradient: AppTheme.primaryGradient, borderRadius: BorderRadius.circular(25)),
-                      child: Container(
-                         height: 60,
-                         alignment: Alignment.center,
-                         child: userProvider.status == UserStatus.Loading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : Text("Register", style: theme.textTheme.headlineMedium?.copyWith(color: Colors.white)),
-                      ),
-                   ),
-                 ),
+                 SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: ElevatedButton(
+                    onPressed: userProvider.status == UserStatus.Loading ? null : () => _registerProfile(context),
+                    child: userProvider.status == UserStatus.Loading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Register'),
+                  ),
+                )
               ],
             ),
           );

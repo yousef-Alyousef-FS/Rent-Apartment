@@ -6,11 +6,11 @@ import '../../settings/connection.dart';
 
 class AdminApiService {
 
-  static const String _baseUrl = Connection.chrome_baseUrl;
+  static const String _baseUrl = Connection.emulator_baseUrl;
 
   Future<User> adminLogin(String email, String password) async {
     final response = await http.post(
-      Uri.parse('$_baseUrl/login'),
+      Uri.parse('$_baseUrl/login_admin'),
       headers: {'Content-Type': 'application/json; charset=UTF-8', 'Accept': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
     );

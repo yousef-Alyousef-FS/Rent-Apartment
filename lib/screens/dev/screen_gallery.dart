@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:plproject/models/apartment.dart';
+import 'package:plproject/models/booking.dart';
+import 'package:plproject/models/user.dart';
 
 // --- Import ALL screens ---
 
@@ -14,17 +16,13 @@ import '../auth/pending_approval_screen.dart';
 // Main App
 import '../main/home_screen.dart';
 import '../main/explore_screen.dart';
-import '../apartments/apartment_details_screen.dart'; // Corrected Path
+import '../apartments/apartment_details_screen.dart';
 import '../main/search_screen.dart';
 import '../main/filter_screen.dart';
-import '../main/location_map_screen.dart';
 import '../main/settings_screen.dart';
-import '../apartments/apartment.dart'; // Corrected Path
 
 // Booking
-import '../booking/booking_screen.dart';
 import '../booking/bookings_list_screen.dart';
-import '../booking/booking_detail_screen.dart';
 import '../booking/review_screen.dart';
 import '../booking/booking_success_screen.dart';
 
@@ -34,24 +32,10 @@ import '../owner/add_apartment_screen.dart';
 import '../owner/my_apartments_screen.dart';
 import '../owner/edit_apartment_screen.dart';
 import '../owner/owner_bookings_screen.dart';
-import '../owner/manage_booking_screen.dart';
-import '../owner/owner_profile_screen.dart';
 
 // User Profile
 import '../profile/profile_screen.dart';
 import '../profile/edit_profile_screen.dart';
-import '../profile/change_password_screen.dart';
-import '../profile/my_reviews_screen.dart';
-
-// Common
-import '../common/splash_screen.dart';
-import '../common/no_internet_screen.dart';
-import '../common/error_screen.dart';
-import '../common/loading_screen.dart';
-
-// Admin
-import '../admin/admin_login_screen.dart';
-import '../admin/admin_dashboard_screen.dart';
 
 
 class ScreenGallery extends StatelessWidget {
@@ -65,75 +49,56 @@ class ScreenGallery extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryHeader(String title) {
+  Widget _buildCategoryHeader(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
-      child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal)),
+      child: Text(title, style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Theme.of(context).primaryColor)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final mockApartment = Apartment(
-      id: 1, title: 'Luxury Villa', description: '...', 
-      price: 3500, location: 'Beverly Hills', bedrooms: 5, bathrooms: 4, area: 450, 
-      imageUrls: []
-    );
+    // --- MOCK DATA --- 
+    final mockApartment = Apartment(id: 1, title: 'Luxury Villa', description: 'A beautiful villa with a stunning view.', price: 350, location: 'Beverly Hills, CA', bedrooms: 5, bathrooms: 4, area: 450, imageUrls: ['https://via.placeholder.com/400x250.png/007BFF/FFFFFF?text=Villa', 'https://via.placeholder.com/400x250.png/6c757d/FFFFFF?text=Living+Room'], average_rating: 4.8, reviews_count: 62);
+    final mockUser = User(id: 1, first_name: 'John', last_name: 'Doe', phone: '+123456789');
+    final mockBooking = Booking(id: 1, checkInDate: DateTime.now(), checkOutDate: DateTime.now().add(const Duration(days: 5)), totalPrice: 1750, status: 'pending_approval', apartment: mockApartment, user: mockUser);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Screen Gallery')),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          _buildCategoryHeader('Auth Flow'),
+          _buildCategoryHeader(context, 'Auth Flow'),
           _buildNavButton(context, 'Welcome Screen', const WelcomeAuthScreen()),
           _buildNavButton(context, 'Login Screen', const LoginScreen()),
           _buildNavButton(context, 'Register Screen', const RegisterPage()),
           _buildNavButton(context, 'Forgot Password', const ForgotPasswordScreen()),
-          _buildNavButton(context, 'Complete Profile', CompleteProfile(phone: 'mock', password: 'mock')), // Added mock data
+          _buildNavButton(context, 'Complete Profile', CompleteProfile(phone: 'mock', password: 'mock')),
           _buildNavButton(context, 'Pending Approval', const PendingApprovalScreen()),
           
-          _buildCategoryHeader('Main App Flow'),
+          _buildCategoryHeader(context, 'Main App Flow'),
           _buildNavButton(context, 'Home Screen', const HomeScreen()),
-          _buildNavButton(context, 'Explore Screen', const ExploreScreen()),
-          _buildNavButton(context, 'Apartments List', const Apartments()),
           _buildNavButton(context, 'Apartment Details', ApartmentDetailsScreen(apartment: mockApartment)),
+          _buildNavButton(context, 'Explore Screen', const ExploreScreen()),
           _buildNavButton(context, 'Search Screen', const SearchScreen()),
           _buildNavButton(context, 'Filter Screen', const FilterScreen()),
-          _buildNavButton(context, 'Location Map', const LocationMapScreen()),
           _buildNavButton(context, 'Settings', const SettingsScreen()),
 
-          _buildCategoryHeader('Booking Flow'),
-          _buildNavButton(context, 'Booking Screen', BookingScreen()),
+          _buildCategoryHeader(context, 'Booking Flow'),
           _buildNavButton(context, 'My Bookings List', const BookingsListScreen()),
-          _buildNavButton(context, 'Booking Detail', const BookingDetailScreen()),
-          _buildNavButton(context, 'Write a Review', ReviewScreen(apartmentId: 1)), // Added mock data
+          _buildNavButton(context, 'Write a Review', ReviewScreen(apartmentId: mockApartment.id)),
           _buildNavButton(context, 'Booking Success', const BookingSuccessScreen()),
 
-          _buildCategoryHeader('Owner Flow'),
+          _buildCategoryHeader(context, 'Owner Flow'),
            _buildNavButton(context, 'Owner Dashboard', const OwnerDashboard()),
           _buildNavButton(context, 'Add Apartment', const AddApartmentScreen()),
           _buildNavButton(context, 'My Apartments', const MyApartmentsScreen()),
-          _buildNavButton(context, 'Edit Apartment', const EditApartmentScreen()),
+          _buildNavButton(context, 'Edit Apartment', EditApartmentScreen(apartment: mockApartment)),
           _buildNavButton(context, 'Owner Bookings', const OwnerBookingsScreen()),
-          _buildNavButton(context, 'Manage Booking', const ManageBookingScreen()),
-          _buildNavButton(context, 'Owner Profile', const OwnerProfileScreen()),
 
-          _buildCategoryHeader('User Profile'),
+          _buildCategoryHeader(context, 'User Profile'),
           _buildNavButton(context, 'Profile Screen', const ProfileScreen()),
           _buildNavButton(context, 'Edit Profile', const EditProfileScreen()),
-          _buildNavButton(context, 'Change Password', const ChangePasswordScreen()),
-          _buildNavButton(context, 'My Reviews', const MyReviewsScreen()),
-
-          _buildCategoryHeader('Common Screens'),
-          _buildNavButton(context, 'Splash Screen', const SplashScreen()),
-          _buildNavButton(context, 'No Internet', const NoInternetScreen()),
-          _buildNavButton(context, 'Error Screen', const ErrorScreen()),
-          _buildNavButton(context, 'Loading Screen', const LoadingScreen()),
-
-           _buildCategoryHeader('Admin Flow'),
-          _buildNavButton(context, 'Admin Login', const AdminLoginScreen()),
-          _buildNavButton(context, 'Admin Dashboard', const AdminDashboardScreen()),
         ],
       ),
     );

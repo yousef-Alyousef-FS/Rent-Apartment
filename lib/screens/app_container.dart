@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:plproject/screens/main/explore_screen.dart';
+import 'package:plproject/screens/main/favorites_screen.dart';
 import 'package:plproject/screens/main/home_screen.dart';
-import 'package:plproject/screens/profile/profile_screen.dart';
-import 'package:plproject/screens/booking/bookings_list_screen.dart';
 
 class AppContainer extends StatefulWidget {
   const AppContainer({super.key});
@@ -14,12 +13,11 @@ class AppContainer extends StatefulWidget {
 class _AppContainerState extends State<AppContainer> {
   int _selectedIndex = 0;
 
-  // The list of main screens to be displayed
-  static const List<Widget> _widgetOptions = <Widget>[
+  // The list of screens managed by the BottomNavBar, reflecting the user's vision.
+  static const List<Widget> _mainScreens = <Widget>[
     HomeScreen(),
     ExploreScreen(),
-    BookingsListScreen(),
-    ProfileScreen(),
+    FavoritesScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -31,8 +29,10 @@ class _AppContainerState extends State<AppContainer> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
+      // IndexedStack preserves the state of each screen when switching.
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _mainScreens,
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
@@ -47,22 +47,17 @@ class _AppContainerState extends State<AppContainer> {
             label: 'Explore',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.bookmark_border),
-            activeIcon: Icon(Icons.bookmark),
-            label: 'Bookings',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
+            icon: Icon(Icons.favorite_border),
+            activeIcon: Icon(Icons.favorite),
+            label: 'Favorites',
           ),
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        // These properties are important for a good look with more than 3 items
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Theme.of(context).primaryColor,
-        unselectedItemColor: Colors.grey,
+        unselectedItemColor: Colors.grey[600],
+        showUnselectedLabels: true,
       ),
     );
   }

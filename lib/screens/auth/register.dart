@@ -4,7 +4,6 @@ import 'package:plproject/providers/user_provider.dart';
 import 'package:plproject/screens/auth/complete_profile.dart';
 import 'package:plproject/utils/validators.dart';
 import 'package:plproject/widgets/CTextField.dart';
-import 'package:plproject/theme/app_theme.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -91,21 +90,16 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
 
-                 MaterialButton(
-                   onPressed: userProvider.status == UserStatus.Loading ? null : () => _proceedToNextStep(context),
-                   padding: EdgeInsets.zero,
-                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                   child: Ink(
-                      decoration: BoxDecoration(gradient: AppTheme.primaryGradient, borderRadius: BorderRadius.circular(25)),
-                      child: Container(
-                         height: 60,
-                         alignment: Alignment.center,
-                         child: userProvider.status == UserStatus.Loading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : Text("Next", style: theme.textTheme.headlineMedium?.copyWith(color: Colors.white)),
-                      ),
-                   ),
-                 ),
+                SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: ElevatedButton(
+                    onPressed: userProvider.status == UserStatus.Loading ? null : () => _proceedToNextStep(context),
+                    child: userProvider.status == UserStatus.Loading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Next'),
+                  ),
+                )
               ],
             ),
           );

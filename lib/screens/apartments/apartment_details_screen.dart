@@ -19,33 +19,23 @@ class _ApartmentDetailsScreenState extends State<ApartmentDetailsScreen> {
     setState(() {
       _isBooking = true;
     });
-
     final bookingProvider = Provider.of<BookingProvider>(context, listen: false);
-    // Using mock dates for now, as we haven't built a date picker UI yet
     final checkIn = DateTime.now().add(const Duration(days: 10));
     final checkOut = DateTime.now().add(const Duration(days: 17));
-
     final success = await bookingProvider.createBooking(
       apartmentId: widget.apartment.id,
       checkIn: checkIn,
       checkOut: checkOut,
     );
-
     if (mounted) {
       if (success) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const BookingSuccessScreen()),
-        );
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const BookingSuccessScreen()));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(bookingProvider.errorMessage ?? 'Failed to create booking. Please try again.'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text(bookingProvider.errorMessage ?? 'Failed to create booking. Please try again.'), backgroundColor: Colors.red),
         );
       }
     }
-
     setState(() {
       _isBooking = false;
     });
@@ -55,24 +45,18 @@ class _ApartmentDetailsScreenState extends State<ApartmentDetailsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.apartment.title),
-      ),
+      appBar: AppBar(title: Text(widget.apartment.title)),
       body: ListView(
         children: [
-          Image.network(
-            widget.apartment.imageUrls.isNotEmpty ? widget.apartment.imageUrls[0] : '',
-            height: 250,
-            width: double.infinity,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Container(height: 250, color: Colors.grey[200]),
-          ),
+          _buildImageCarousel(context, widget.apartment.imageUrls),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(widget.apartment.title, style: theme.textTheme.headlineMedium),
+                const SizedBox(height: 8),
+                _buildRatingSection(theme, widget.apartment),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -105,6 +89,43 @@ class _ApartmentDetailsScreenState extends State<ApartmentDetailsScreen> {
     );
   }
 
+  Widget _buildImageCarousel(BuildContext context, List<String> imageUrls) {
+    if (imageUrls.isEmpty) {
+      return Container(height: 250, color: Colors.grey[200], child: const Center(child: Icon(Icons.apartment, size: 80)));
+    }
+    return SizedBox(
+      height: 250,
+      child: PageView.builder(
+        itemCount: imageUrls.length,
+        itemBuilder: (context, index) {
+          return Image.network(
+            imageUrls[index],
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => Container(height: 250, color: Colors.grey[200], child: const Center(child: Icon(Icons.error_outline, size: 80))),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildRatingSection(ThemeData theme, Apartment apartment) {
+    final rating = apartment.average_rating ?? 0.0;
+    final reviewCount = apartment.reviews_count ?? 0;
+    List<Widget> stars = List.generate(5, (index) {
+      double starValue = rating - index;
+      if (starValue >= 1.0) return const Icon(Icons.star, color: Colors.amber, size: 20);
+      if (starValue >= 0.5) return const Icon(Icons.star_half, color: Colors.amber, size: 20);
+      return const Icon(Icons.star_border, color: Colors.amber, size: 20);
+    });
+    return Row(
+      children: [
+        ...stars,
+        const SizedBox(width: 8),
+        Text('$rating ($reviewCount reviews)', style: theme.textTheme.bodyLarge),
+      ],
+    );
+  }
+
   Widget _buildDetailIcon(BuildContext context, IconData icon, String label) {
     return Column(
       children: [
@@ -119,8 +140,9 @@ class _ApartmentDetailsScreenState extends State<ApartmentDetailsScreen> {
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).scaffoldBackgroundColor,
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10)],
+        border: Border(top: BorderSide(color: Colors.grey.shade300, width: 1)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -135,13 +157,9 @@ class _ApartmentDetailsScreenState extends State<ApartmentDetailsScreen> {
           ),
           ElevatedButton(
             onPressed: _isBooking ? null : _createBooking,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-              backgroundColor: theme.primaryColor,
-              foregroundColor: Colors.white,
-            ),
+            style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16)),
             child: _isBooking
-                ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
+                ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 3))
                 : const Text('Book Now'),
           ),
         ],

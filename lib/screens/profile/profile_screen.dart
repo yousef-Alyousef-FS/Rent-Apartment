@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:plproject/models/user.dart';
 import 'package:plproject/providers/user_provider.dart';
+import 'package:plproject/screens/main/settings_screen.dart';
+import 'package:plproject/widgets/menu_list_item.dart'; // Import the new widget
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    // Use a consumer to react to changes in UserProvider (like logout)
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
         final user = userProvider.user;
@@ -17,45 +17,41 @@ class ProfileScreen extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title: const Text('My Profile'),
-            automaticallyImplyLeading: false,
           ),
           body: ListView(
             children: [
-              _buildProfileHeader(theme as BuildContext, context as ThemeData, user),
+              _buildProfileHeader(context, user),
               const SizedBox(height: 24),
-              _buildProfileMenuItem(
-                context,
+              MenuListItem(
                 icon: Icons.bookmark_border,
                 title: 'My Bookings',
-                onTap: () { /* TODO: Navigate to Bookings List */ },
+                onTap: () { /* TODO */ },
               ),
-              _buildProfileMenuItem(
-                context,
+              MenuListItem(
                 icon: Icons.favorite_border,
                 title: 'Favorites',
-                onTap: () { /* TODO: Navigate to Favorites Screen */ },
+                onTap: () { /* TODO */ },
               ),
-              _buildProfileMenuItem(
-                context,
+              MenuListItem(
                 icon: Icons.reviews_outlined,
                 title: 'My Reviews',
-                onTap: () { /* TODO: Navigate to My Reviews Screen */ },
+                onTap: () { /* TODO */ },
               ),
-              _buildProfileMenuItem(
-                context,
+              MenuListItem(
                 icon: Icons.settings_outlined,
                 title: 'Settings',
-                onTap: () { /* TODO: Navigate to Settings Screen */ },
+                onTap: () {
+                   Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const SettingsScreen()));
+                },
               ),
               const Divider(height: 32),
-              _buildProfileMenuItem(
-                context,
-                icon: Icons.logout,
-                title: 'Logout',
-                color: Colors.red[700],
-                // Connect the logout button to the provider method
-                onTap: () => _showLogoutDialog(context, userProvider),
-              ),
+              if (userProvider.isLoggedIn)
+                MenuListItem(
+                  icon: Icons.logout,
+                  title: 'Logout',
+                  color: Colors.red[700],
+                  onTap: () => _showLogoutDialog(context, userProvider),
+                ),
             ],
           ),
         );
@@ -78,9 +74,8 @@ class ProfileScreen extends StatelessWidget {
             TextButton(
               child: const Text('Logout'),
               onPressed: () {
-                Navigator.of(dialogContext).pop(); // Close the dialog first
-                userProvider.logout(); // Then call the logout method
-                // AuthGate will handle navigation automatically.
+                Navigator.of(dialogContext).pop();
+                userProvider.logout();
               },
             ),
           ],
@@ -89,19 +84,24 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileHeader(BuildContext context, ThemeData theme, User? user) {
+  // This widget remains local as it's unique to this screen
+  Widget _buildProfileHeader(BuildContext context, User? user) {
+    final theme = Theme.of(context);
+    final String displayName = user?.first_name != null
+        ? '${user!.first_name} ${user.last_name ?? ''}'.trim()
+        : 'Guest';
+    final String? imageUrl = user?.profile_image;
+
     return InkWell(
-      onTap: () { /* TODO: Navigate to Edit Profile */ },
+      onTap: () { /* TODO: Navigate to Edit Profile only if logged in */ },
       child: Container(
         padding: const EdgeInsets.all(24.0),
         child: Row(
           children: [
             CircleAvatar(
               radius: 40,
-              backgroundImage: (user?.profile_image != null)
-                  ? NetworkImage(user!.profile_image!)
-                  : null,
-              child: (user?.profile_image == null)
+              backgroundImage: imageUrl != null ? NetworkImage(imageUrl) : null,
+              child: imageUrl == null 
                   ? const Icon(Icons.person, size: 40)
                   : null,
             ),
@@ -110,18 +110,17 @@ class ProfileScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    user != null ? '${user.first_name} ${user.last_name}' : 'Guest',
-                    style: theme.textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Text('View and edit profile', style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600])),
-                      const SizedBox(width: 4),
-                      Icon(Icons.arrow_forward_ios, size: 12, color: Colors.grey[600]),
-                    ],
-                  ),
+                  Text(displayName, style: theme.textTheme.headlineSmall),
+                  if (user != null) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Text('View and edit profile', style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600])),
+                        const SizedBox(width: 4),
+                        Icon(Icons.arrow_forward_ios, size: 12, color: Colors.grey[600]),
+                      ],
+                    ),
+                  ]
                 ],
               ),
             )
@@ -131,12 +130,5 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileMenuItem(BuildContext context, {required IconData icon, required String title, VoidCallback? onTap, Color? color}) {
-    return ListTile(
-      leading: Icon(icon, color: color ?? Theme.of(context).iconTheme.color),
-      title: Text(title, style: TextStyle(color: color)),
-      trailing: (onTap != null) ? const Icon(Icons.chevron_right, color: Colors.grey) : null,
-      onTap: onTap,
-    );
-  }
+  // _buildProfileMenuItem has been removed
 }

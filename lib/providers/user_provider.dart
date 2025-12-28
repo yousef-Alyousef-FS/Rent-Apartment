@@ -3,19 +3,21 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:plproject/models/user.dart';
 import 'package:plproject/services/APIs/user_api_service.dart';
-import 'package:plproject/services/storage_service.dart';
 
 enum UserStatus { Checking, Authenticated, Unauthenticated, Loading, Error }
 
 class UserProvider with ChangeNotifier {
   final UserApiService _apiService = UserApiService();
-  final StorageService _storageService = StorageService();
   static const String _tokenKey = 'auth_token';
+  static const String _favoritesKey = 'favorite_ids';
 
   User? _user;
   String? _token;
   UserStatus _status = UserStatus.Checking;
   String? _errorMessage;
+
+  List<int> _favoriteApartmentIds = [];
+  List<int> get favoriteApartmentIds => _favoriteApartmentIds;
 
   User? get user => _user;
   String? get token => _token;
@@ -25,21 +27,46 @@ class UserProvider with ChangeNotifier {
 
   UserProvider() {
     tryAutoLogin();
+    _loadFavorites();
+  }
+
+  Future<void> _loadFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    final favoriteIdsAsString = prefs.getStringList(_favoritesKey) ?? [];
+    _favoriteApartmentIds = favoriteIdsAsString.map((id) => int.parse(id)).toList();
+    notifyListeners();
+  }
+
+  Future<void> _saveFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    final favoriteIdsAsString = _favoriteApartmentIds.map((id) => id.toString()).toList();
+    await prefs.setStringList(_favoritesKey, favoriteIdsAsString);
+  }
+
+  bool isFavorite(int apartmentId) {
+    return _favoriteApartmentIds.contains(apartmentId);
+  }
+
+  void toggleFavorite(int apartmentId) {
+    if (isFavorite(apartmentId)) {
+      _favoriteApartmentIds.remove(apartmentId);
+    } else {
+      _favoriteApartmentIds.add(apartmentId);
+    }
+    _saveFavorites();
+    notifyListeners();
   }
 
   Future<void> tryAutoLogin() async {
     _status = UserStatus.Checking;
     notifyListeners();
-
     final prefs = await SharedPreferences.getInstance();
     final storedToken = prefs.getString(_tokenKey);
-
     if (storedToken == null) {
       _status = UserStatus.Unauthenticated;
       notifyListeners();
       return;
     }
-
     try {
       final userProfile = await _apiService.getUserProfile(storedToken);
       _user = userProfile;
@@ -56,16 +83,13 @@ class UserProvider with ChangeNotifier {
     _status = UserStatus.Loading;
     _errorMessage = null;
     notifyListeners();
-
     try {
       final loggedInUser = await _apiService.login(phone, password);
       _user = loggedInUser;
       _token = loggedInUser.token;
-
       if (_token != null) {
         await _saveToken(_token!);
       }
-
       _status = UserStatus.Authenticated;
       notifyListeners();
       return true;
@@ -82,39 +106,26 @@ class UserProvider with ChangeNotifier {
     required String password,
     required String firstName,
     required String lastName,
-    DateTime? dateOfBirth,
+    String? dateOfBirth,
     XFile? personalImage,
     XFile? idCardImage,
   }) async {
     _status = UserStatus.Loading;
     _errorMessage = null;
     notifyListeners();
-
     try {
-      String? personalImageUrl;
-      String? idCardImageUrl;
-      if (personalImage != null) {
-        personalImageUrl = await _storageService.uploadImage(personalImage.path);
-      }
-      if (idCardImage != null) {
-        idCardImageUrl = await _storageService.uploadImage(idCardImage.path);
-      }
-
-      final userToRegister = User(
-        first_name: firstName,
-        last_name: lastName,
-        dateOfBirth: dateOfBirth,
-        phone: phone,
-        password: password,
-        profile_image: personalImageUrl,
-        id_card_image: idCardImageUrl,
+      final registeredUser = await _apiService.register(
+        phone: phone, password: password, firstName: firstName, lastName: lastName,
+        dateOfBirth: dateOfBirth, personalImage: personalImage, idCardImage: idCardImage,
       );
-
-      await _apiService.register(userToRegister);
-
-      // On success, log the user in to get a token and complete the flow
-      return await login(phone, password);
-
+      _user = registeredUser;
+      _token = registeredUser.token;
+      if (_token != null) {
+        await _saveToken(_token!);
+      }
+      _status = UserStatus.Authenticated;
+      notifyListeners();
+      return true;
     } catch (e) {
       _status = UserStatus.Error;
       _errorMessage = e.toString();
@@ -127,7 +138,6 @@ class UserProvider with ChangeNotifier {
     _status = UserStatus.Loading;
     _errorMessage = null;
     notifyListeners();
-
     try {
       final isAvailable = await _apiService.checkPhoneAvailability(phone);
       if (isAvailable) {
@@ -157,8 +167,10 @@ class UserProvider with ChangeNotifier {
     _user = null;
     _token = null;
     _status = UserStatus.Unauthenticated;
+    _favoriteApartmentIds = []; // Clear favorites on logout
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
+    await prefs.remove(_favoritesKey);
     notifyListeners();
   }
 }

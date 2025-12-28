@@ -11,10 +11,12 @@ class BookingProvider with ChangeNotifier {
 
   BookingStatusState _status = BookingStatusState.Idle;
   List<Booking> _bookings = [];
+  List<Booking> _bookingRequests = [];
   String? _errorMessage;
 
   BookingStatusState get status => _status;
   List<Booking> get bookings => _bookings;
+  List<Booking> get bookingRequests => _bookingRequests;
   String? get errorMessage => _errorMessage;
 
   void update(UserProvider userProvider) {
@@ -27,7 +29,6 @@ class BookingProvider with ChangeNotifier {
     if (_token == null) return;
     _status = BookingStatusState.Loading;
     notifyListeners();
-
     try {
       _bookings = await _apiService.getUserBookings(_token!);
       _status = BookingStatusState.Loaded;
@@ -42,7 +43,6 @@ class BookingProvider with ChangeNotifier {
     if (_token == null) return false;
     _status = BookingStatusState.Loading;
     notifyListeners();
-
     try {
       final newBooking = await _apiService.createBooking(_token!, apartmentId: apartmentId, checkIn: checkIn, checkOut: checkOut);
       _bookings.add(newBooking);
@@ -60,18 +60,88 @@ class BookingProvider with ChangeNotifier {
   Future<bool> cancelBooking(int bookingId) async {
     if (_token == null) return false;
     final bookingIndex = _bookings.indexWhere((b) => b.id == bookingId);
-    if (bookingIndex == -1) return false; 
-
+    if (bookingIndex == -1) return false;
     final originalBooking = _bookings[bookingIndex];
     _bookings[bookingIndex] = originalBooking.copyWith(status: 'cancelled');
     notifyListeners();
-
     try {
       await _apiService.cancelBooking(_token!, bookingId);
       return true;
     } catch (e) {
       _bookings[bookingIndex] = originalBooking;
       _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<void> fetchBookingRequests() async {
+    if (_token == null) return;
+    _status = BookingStatusState.Loading;
+    notifyListeners();
+    try {
+      _bookingRequests = await _apiService.getBookingRequests(_token!);
+      _status = BookingStatusState.Loaded;
+    } catch (e) {
+      _status = BookingStatusState.Error;
+      _errorMessage = e.toString();
+    }
+    notifyListeners();
+  }
+
+  Future<bool> approveBooking(int bookingId) async {
+    if (_token == null) return false;
+    try {
+      await _apiService.approveBooking(_token!, bookingId);
+      _bookingRequests.removeWhere((b) => b.id == bookingId);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> rejectBooking(int bookingId) async {
+    if (_token == null) return false;
+    try {
+      await _apiService.rejectBooking(_token!, bookingId);
+      _bookingRequests.removeWhere((b) => b.id == bookingId);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> requestBookingUpdate({
+    required int bookingId,
+    required DateTime newCheckIn,
+    required DateTime newCheckOut,
+  }) async {
+    if (_token == null) return false;
+    _status = BookingStatusState.Loading;
+    notifyListeners();
+    try {
+      final updatedBooking = await _apiService.requestBookingUpdate(
+        _token!,
+        bookingId: bookingId,
+        newCheckIn: newCheckIn,
+        newCheckOut: newCheckOut,
+      );
+      final index = _bookings.indexWhere((b) => b.id == bookingId);
+      if (index != -1) {
+        _bookings[index] = updatedBooking;
+      }
+      _status = BookingStatusState.Loaded;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _status = BookingStatusState.Error;
       notifyListeners();
       return false;
     }

@@ -1,15 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:plproject/providers/theme_provider.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
-
-  @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
-}
-
-class _SettingsScreenState extends State<SettingsScreen> {
-  bool _notificationsEnabled = true;
-  bool _darkModeEnabled = false;
 
   @override
   Widget build(BuildContext context) {
@@ -19,53 +13,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       body: ListView(
         children: [
+          _buildSectionHeader('Appearance'),
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, child) {
+              return ListTile(
+                title: const Text('Dark Mode'),
+                leading: const Icon(Icons.dark_mode_outlined),
+                trailing: Switch(
+                  value: themeProvider.themeMode == ThemeMode.dark,
+                  onChanged: (value) {
+                    themeProvider.toggleTheme(value);
+                  },
+                ),
+              );
+            },
+          ),
+          
           _buildSectionHeader('Account'),
           ListTile(
-            leading: const Icon(Icons.person_outline),
             title: const Text('Edit Profile'),
+            leading: const Icon(Icons.person_outline),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () { /* TODO: Navigate to Edit Profile */ },
+            onTap: () { /* TODO */ },
           ),
           ListTile(
-            leading: const Icon(Icons.lock_outline),
             title: const Text('Change Password'),
+            leading: const Icon(Icons.lock_outline),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () { /* TODO: Navigate to Change Password */ },
-          ),
-
-          _buildSectionHeader('Application'),
-          SwitchListTile(
-            secondary: const Icon(Icons.notifications_outlined),
-            title: const Text('Notifications'),
-            value: _notificationsEnabled,
-            onChanged: (bool value) {
-              setState(() {
-                _notificationsEnabled = value;
-              });
-            },
-          ),
-          SwitchListTile(
-            secondary: const Icon(Icons.dark_mode_outlined),
-            title: const Text('Dark Mode'),
-            value: _darkModeEnabled,
-            onChanged: (bool value) {
-              setState(() {
-                _darkModeEnabled = value;
-              });
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.language_outlined),
-            title: const Text('Language'),
-            subtitle: const Text('English'), // Placeholder
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () { /* TODO: Show language picker */ },
-          ),
-          const Divider(),
-          ListTile(
-            leading: Icon(Icons.logout, color: Colors.red[700]),
-            title: Text('Logout', style: TextStyle(color: Colors.red[700])),
-            onTap: () { /* TODO: Implement logout logic */ },
+            onTap: () { /* TODO */ },
           ),
         ],
       ),

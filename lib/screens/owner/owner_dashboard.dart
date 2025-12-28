@@ -1,7 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:plproject/models/apartment.dart';
+import 'package:plproject/providers/apartment_provider.dart';
+import 'package:plproject/screens/owner/add_apartment_screen.dart';
+import 'package:plproject/screens/owner/edit_apartment_screen.dart';
+import 'package:plproject/screens/owner/my_apartments_screen.dart';
+import 'package:plproject/screens/owner/owner_bookings_screen.dart';
+import 'package:plproject/screens/owner/owner_profile_screen.dart';
 
-class OwnerDashboard extends StatelessWidget {
+class OwnerDashboard extends StatefulWidget {
   const OwnerDashboard({super.key});
+
+  @override
+  State<OwnerDashboard> createState() => _OwnerDashboardState();
+}
+
+class _OwnerDashboardState extends State<OwnerDashboard> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ApartmentProvider>(context, listen: false).fetchMyApartments();
+    });
+  }
+
+  List<Apartment> _getMockApartments() {
+    return [
+      Apartment(id: 101, title: 'My First Apartment', description: 'Mock description', location: 'City Center', price: 120, bedrooms: 2, bathrooms: 1, area: 90, imageUrls: []),
+      Apartment(id: 102, title: 'My Second Apartment', description: 'Mock description', location: 'Suburb Area', price: 95, bedrooms: 3, bathrooms: 2, area: 120, imageUrls: []),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,24 +40,30 @@ class OwnerDashboard extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.account_circle_outlined),
-            onPressed: () { /* TODO: Navigate to Owner Profile */ },
+            onPressed: () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const OwnerProfileScreen()));
+            },
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          // Stats Section
-          _buildStatsGrid(theme),
-          const SizedBox(height: 24),
-
-          // My Apartments Section
-          _buildSectionHeader(theme, 'My Apartments', () { /* TODO: Navigate to My Apartments */ }),
-          _buildMyApartmentsList(),
-        ],
+      body: RefreshIndicator(
+        onRefresh: () => Provider.of<ApartmentProvider>(context, listen: false).fetchMyApartments(),
+        child: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: [
+            _buildStatsGrid(theme),
+            const SizedBox(height: 24),
+            _buildSectionHeader(theme, 'My Apartments', () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const MyApartmentsScreen()));
+            }),
+            _buildMyApartmentsList(),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () { /* TODO: Navigate to Add Apartment Screen */ },
+        onPressed: () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const AddApartmentScreen()));
+        },
         label: const Text('Add Apartment'),
         icon: const Icon(Icons.add),
       ),
@@ -39,38 +73,30 @@ class OwnerDashboard extends StatelessWidget {
   Widget _buildStatsGrid(ThemeData theme) {
     return GridView.count(
       crossAxisCount: 2,
-      shrinkWrap: true, // Important for GridView inside ListView
-      physics: const NeverScrollableScrollPhysics(), // Disable GridView's own scrolling
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       crossAxisSpacing: 16,
       mainAxisSpacing: 16,
-      childAspectRatio: 1.5, // Adjust aspect ratio for better look
+      childAspectRatio: 1.5,
       children: [
-        _buildStatCard(theme, 'Total Earnings', '\$12,500', Icons.attach_money, Colors.green),
-        _buildStatCard(theme, 'New Bookings', '3', Icons.bookmark_added_outlined, Colors.blue),
-      ],
-    );
-  }
-
-  Widget _buildStatCard(ThemeData theme, String title, String value, IconData icon, Color color) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Icon(icon, size: 32, color: color),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(value, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-                Text(title, style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600])),
-              ],
-            )
-          ],
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('\$12,500', style: theme.textTheme.headlineSmall), Text('Total Earnings')]),
+          ),
         ),
-      ),
+        InkWell(
+          onTap: () {
+            Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const OwnerBookingsScreen()));
+          },
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('3', style: theme.textTheme.headlineSmall), Text('New Bookings')]),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -85,18 +111,28 @@ class OwnerDashboard extends StatelessWidget {
   }
 
   Widget _buildMyApartmentsList() {
-    // Mock list of owner's apartments
-    final myApartments = ['Ocean View Villa', 'Urban Chic Loft'];
-    return Column(
-      children: myApartments.map((title) => Card(
-        margin: const EdgeInsets.symmetric(vertical: 4.0),
-        child: ListTile(
-          title: Text(title),
-          subtitle: const Text('Malibu, California'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () { /* TODO: Navigate to Edit Apartment */ },
-        ),
-      )).toList(),
+    return Consumer<ApartmentProvider>(
+      builder: (context, provider, child) {
+        if (provider.status == ApartmentStatus.Loading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final apartments = provider.myApartments.isEmpty ? _getMockApartments() : provider.myApartments;
+        final previewApartments = apartments.take(3).toList();
+
+        return Column(
+          children: previewApartments.map((apartment) => Card(
+            margin: const EdgeInsets.symmetric(vertical: 4.0),
+            child: ListTile(
+              title: Text(apartment.title),
+              subtitle: Text(apartment.location),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => EditApartmentScreen(apartment: apartment)));
+              },
+            ),
+          )).toList(),
+        );
+      },
     );
   }
 }

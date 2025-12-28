@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:plproject/providers/user_provider.dart';
+import 'package:plproject/screens/auth/auth_gate.dart';
 import 'package:plproject/screens/auth/forgot_password_screen.dart';
 import 'package:plproject/screens/auth/register.dart';
 import 'package:plproject/utils/validators.dart';
 import 'package:plproject/widgets/CTextField.dart';
-import 'package:plproject/theme/app_theme.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,11 +30,20 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    await userProvider.login(
+    final success = await userProvider.login(
       _phoneController.text,
       _passwordController.text,
     );
-    // No navigation here! AuthGate will handle it.
+
+    if (success && mounted) {
+      // The most robust solution: Navigate back to the AuthGate.
+      // This tells the app to re-evaluate the authentication state from the root.
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const AuthGate()),
+        (route) => false,
+      );
+    }
+    // If login fails, the Consumer below will automatically show the error message.
   }
 
   @override
@@ -73,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 20,),
 
-                if (userProvider.errorMessage != null)
+                if (userProvider.status == UserStatus.Error && userProvider.errorMessage != null)
                   Container(
                     padding: const EdgeInsets.all(12),
                     margin: const EdgeInsets.only(bottom: 20),
@@ -89,19 +98,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
 
-                MaterialButton(
-                  onPressed: userProvider.status == UserStatus.Loading ? null : () => _login(context),
-                  padding: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                  child: Ink(
-                    decoration: BoxDecoration(gradient: AppTheme.primaryGradient, borderRadius: BorderRadius.circular(25)),
-                    child: Container(
-                      height: 60,
-                      alignment: Alignment.center,
-                      child: userProvider.status == UserStatus.Loading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : Text("Login", style: theme.textTheme.headlineMedium?.copyWith(color: Colors.white)),
+                SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      textStyle: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                     ),
+                    onPressed: userProvider.status == UserStatus.Loading ? null : () => _login(context),
+                    child: userProvider.status == UserStatus.Loading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Login'),
                   ),
                 ),
 

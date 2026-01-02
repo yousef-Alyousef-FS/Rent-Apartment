@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:plproject/widgets/CTextField.dart';
+// import 'package:plproject/widgets/CTextField.dart'; // No longer needed
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -28,15 +28,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           const SizedBox(height: 32),
 
           Text('First Name', style: theme.textTheme.titleMedium),
-          CTextField(controller: _firstNameController, hintText: 'Your first name'),
+          // --- REPLACED CTextField with TextFormField ---
+          TextFormField(
+            controller: _firstNameController,
+            decoration: const InputDecoration(hintText: 'Your first name'),
+          ),
           const SizedBox(height: 16),
 
           Text('Last Name', style: theme.textTheme.titleMedium),
-          CTextField(controller: _lastNameController, hintText: 'Your last name'),
+          // --- REPLACED CTextField with TextFormField ---
+          TextFormField(
+            controller: _lastNameController,
+            decoration: const InputDecoration(hintText: 'Your last name'),
+          ),
           const SizedBox(height: 16),
 
           Text('Date of Birth', style: theme.textTheme.titleMedium),
-          CTextField(controller: _dobController, hintText: 'YYYY-MM-DD'),
+          // --- REPLACED CTextField with TextFormField ---
+          TextFormField(
+            controller: _dobController,
+            decoration: const InputDecoration(hintText: 'YYYY-MM-DD'),
+            keyboardType: TextInputType.datetime,
+          ),
         ],
       ),
       bottomNavigationBar: _buildSaveChangesButton(theme),
@@ -76,8 +89,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         onPressed: () { /* TODO: Save profile changes */ },
         style: ElevatedButton.styleFrom(
           minimumSize: const Size(double.infinity, 50),
-          backgroundColor: theme.colorScheme.primary,
-          foregroundColor: theme.colorScheme.onPrimary,
+          // No need to explicitly set colors, they are inherited from the theme
         ),
         child: const Text('Save Changes'),
       ),

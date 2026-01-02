@@ -1,8 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:plproject/models/apartment.dart';
 import 'package:plproject/providers/apartment_provider.dart';
-import 'package:plproject/widgets/CTextField.dart';
 
 class AddApartmentScreen extends StatefulWidget {
   const AddApartmentScreen({super.key});
@@ -13,70 +14,91 @@ class AddApartmentScreen extends StatefulWidget {
 
 class _AddApartmentScreenState extends State<AddApartmentScreen> {
   final _formKey = GlobalKey<FormState>();
+
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _locationController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _governorateController = TextEditingController();
   final _priceController = TextEditingController();
   final _areaController = TextEditingController();
-  final _bedroomsController = TextEditingController();
-  final _bathroomsController = TextEditingController();
+  final _roomsController = TextEditingController();
+
+  final _picker = ImagePicker();
+  List<XFile> _selectedImages = [];
 
   bool _isLoading = false;
+
+  Future<void> _pickImages() async {
+    final List<XFile> pickedFiles = await _picker.pickMultiImage();
+    if (pickedFiles.isNotEmpty) {
+      setState(() {
+        _selectedImages.addAll(pickedFiles);
+      });
+    }
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _selectedImages.removeAt(index);
+    });
+  }
 
   Future<void> _saveApartment() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    if (_selectedImages.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please add at least one image.'), backgroundColor: Colors.orange));
+      return;
+    }
+
+    setState(() => _isLoading = true);
 
     final apartmentProvider = Provider.of<ApartmentProvider>(context, listen: false);
 
-    // Create the apartment object from the form data
     final newApartment = Apartment(
-      id: 0, // The backend will assign the ID
+      id: 0,
+      userId: 0,
       title: _titleController.text,
       description: _descriptionController.text,
-      location: _locationController.text,
       price: double.tryParse(_priceController.text) ?? 0.0,
+      isRented: false,
+      address: _addressController.text,
+      city: _cityController.text,
+      governorate: _governorateController.text,
+      rooms: int.tryParse(_roomsController.text) ?? 0,
       area: int.tryParse(_areaController.text) ?? 0,
-      bedrooms: int.tryParse(_bedroomsController.text) ?? 0,
-      bathrooms: int.tryParse(_bathroomsController.text) ?? 0,
-      imageUrls: [], // Image handling will be added later
+      imageUrls: [],
     );
 
-    final success = await apartmentProvider.addApartment(newApartment);
+    final success = await apartmentProvider.addApartment(newApartment, _selectedImages);
 
     if (mounted) {
+      final theme = Theme.of(context);
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Apartment added successfully!'), backgroundColor: Colors.green),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Apartment added successfully!'), backgroundColor: Colors.green));
         Navigator.of(context).pop();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(apartmentProvider.errorMessage ?? 'Failed to add apartment.'), backgroundColor: Colors.red),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(apartmentProvider.errorMessage ?? 'Failed to add apartment.'), backgroundColor: theme.colorScheme.error));
       }
     }
 
     if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
   @override
   void dispose() {
-    // Dispose all controllers
     _titleController.dispose();
     _descriptionController.dispose();
-    _locationController.dispose();
+    _addressController.dispose();
+    _cityController.dispose();
+    _governorateController.dispose();
     _priceController.dispose();
     _areaController.dispose();
-    _bedroomsController.dispose();
-    _bathroomsController.dispose();
+    _roomsController.dispose();
     super.dispose();
   }
 
@@ -84,70 +106,147 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add New Apartment'),
-      ),
+      appBar: AppBar(title: const Text('Add New Apartment')),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
             _buildSectionHeader(theme, 'Basic Information'),
-            CTextField(controller: _titleController, hintText: 'Apartment Title', validator: (v) => v!.isEmpty ? 'Required' : null),
+            TextFormField(controller: _titleController, decoration: const InputDecoration(labelText: 'Title'), validator: (v) => v!.isEmpty ? 'Required' : null),
             const SizedBox(height: 16),
-            CTextField(controller: _descriptionController, hintText: 'Description', maxLines: 5, validator: (v) => v!.isEmpty ? 'Required' : null),
-            const SizedBox(height: 16),
-            CTextField(controller: _locationController, hintText: 'Location', validator: (v) => v!.isEmpty ? 'Required' : null),
+            TextFormField(controller: _descriptionController, decoration: const InputDecoration(labelText: 'Description'), maxLines: 5, validator: (v) => v!.isEmpty ? 'Required' : null),
             const SizedBox(height: 24),
-
+            _buildSectionHeader(theme, 'Location'),
+            TextFormField(controller: _governorateController, decoration: const InputDecoration(labelText: 'Governorate'), validator: (v) => v!.isEmpty ? 'Required' : null),
+            const SizedBox(height: 16),
+            TextFormField(controller: _cityController, decoration: const InputDecoration(labelText: 'City'), validator: (v) => v!.isEmpty ? 'Required' : null),
+            const SizedBox(height: 16),
+            TextFormField(controller: _addressController, decoration: const InputDecoration(labelText: 'Detailed Address'), validator: (v) => v!.isEmpty ? 'Required' : null),
+            const SizedBox(height: 24),
             _buildSectionHeader(theme, 'Specifications'),
             Row(
               children: [
-                Expanded(child: CTextField(controller: _priceController, hintText: 'Price / night', textInputType: TextInputType.number, validator: (v) => v!.isEmpty ? 'Required' : null)),
+                Expanded(child: TextFormField(controller: _priceController, decoration: const InputDecoration(labelText: 'Price / night'), keyboardType: TextInputType.number, validator: (v) => v!.isEmpty ? 'Required' : null)),
                 const SizedBox(width: 16),
-                Expanded(child: CTextField(controller: _areaController, hintText: 'Area (sqft)', textInputType: TextInputType.number, validator: (v) => v!.isEmpty ? 'Required' : null)),
+                Expanded(child: TextFormField(controller: _areaController, decoration: const InputDecoration(labelText: 'Area (sqm)'), keyboardType: TextInputType.number, validator: (v) => v!.isEmpty ? 'Required' : null)),
               ],
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(child: CTextField(controller: _bedroomsController, hintText: 'Bedrooms', textInputType: TextInputType.number, validator: (v) => v!.isEmpty ? 'Required' : null)),
-                const SizedBox(width: 16),
-                Expanded(child: CTextField(controller: _bathroomsController, hintText: 'Bathrooms', textInputType: TextInputType.number, validator: (v) => v!.isEmpty ? 'Required' : null)),
-              ],
-            ),
+            TextFormField(controller: _roomsController, decoration: const InputDecoration(labelText: 'Number of Rooms'), keyboardType: TextInputType.number, validator: (v) => v!.isEmpty ? 'Required' : null),
             const SizedBox(height: 24),
-
             _buildSectionHeader(theme, 'Photos'),
-            // TODO: Add image upload UI
-            Container(height: 120, decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(12)), child: const Center(child: Text('Image upload coming soon'))),
+            _buildImagePicker(theme),
           ],
         ),
       ),
-       bottomNavigationBar: _buildAddButton(theme),
+      bottomNavigationBar: _buildAddButton(),
     );
   }
 
-   Widget _buildSectionHeader(ThemeData theme, String title) {
+  Widget _buildSectionHeader(ThemeData theme, String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Text(title, style: theme.textTheme.titleLarge),
     );
   }
 
-  Widget _buildAddButton(ThemeData theme) {
-     return Padding(
+  Widget _buildAddButton() {
+    return Padding(
       padding: const EdgeInsets.all(16.0),
       child: ElevatedButton(
         onPressed: _isLoading ? null : _saveApartment,
-        style: ElevatedButton.styleFrom(
-          minimumSize: const Size(double.infinity, 50),
-          backgroundColor: theme.colorScheme.primary,
-          foregroundColor: theme.colorScheme.onPrimary,
-        ),
         child: _isLoading
-            ? const CircularProgressIndicator(color: Colors.white)
+            ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white))
             : const Text('Add Apartment'),
+      ),
+    );
+  }
+  
+  Widget _buildImagePicker(ThemeData theme) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 120,
+          child: _selectedImages.isEmpty
+              ? _buildImagePickerPlaceholder(theme)
+              : ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _selectedImages.length + 1,
+                  itemBuilder: (context, index) {
+                    if (index == _selectedImages.length) {
+                      return _buildAddMoreButton(theme);
+                    }
+                    return _buildImageThumbnail(index);
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImagePickerPlaceholder(ThemeData theme) {
+    return InkWell(
+      onTap: _pickImages,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(color: theme.cardColor.withOpacity(0.5), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade400, style: BorderStyle.solid)),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.add_a_photo_outlined, size: 40, color: Colors.grey[600]),
+            const SizedBox(height: 8),
+            const Text('Add Photos'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddMoreButton(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: InkWell(
+        onTap: _pickImages,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: 100,
+          decoration: BoxDecoration(color: theme.cardColor.withOpacity(0.5), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade400, style: BorderStyle.solid)),
+          child: Icon(Icons.add, size: 40, color: Colors.grey[600]),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageThumbnail(int index) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.file(
+              File(_selectedImages[index].path),
+              width: 100,
+              height: 100,
+              fit: BoxFit.cover,
+            ),
+          ),
+          Positioned(
+            top: -10,
+            right: -10,
+            child: IconButton(
+              icon: const CircleAvatar(
+                radius: 12,
+                backgroundColor: Colors.black54,
+                child: Icon(Icons.close, size: 14, color: Colors.white),
+              ),
+              onPressed: () => _removeImage(index),
+            ),
+          ),
+        ],
       ),
     );
   }

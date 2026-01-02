@@ -57,10 +57,10 @@ class _ManageBookingScreenState extends State<ManageBookingScreen> {
           Card(
             child: ListTile(
               leading: CircleAvatar(
-                backgroundImage: booking.user.profile_image != null ? NetworkImage(booking.user.profile_image!) : null,
-                child: booking.user.profile_image == null ? const Icon(Icons.person) : null,
+                backgroundImage: booking.user.profileImageUrl != null ? NetworkImage(booking.user.profileImageUrl!) : null,
+                child: booking.user.profileImageUrl == null ? const Icon(Icons.person) : null,
               ),
-              title: Text('${booking.user.first_name} ${booking.user.last_name}'),
+              title: Text('${booking.user.firstName} ${booking.user.lastName}'),
               subtitle: const Text('Joined: Jan 2024'), // Mock data
             ),
           ),

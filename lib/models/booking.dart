@@ -7,7 +7,6 @@ class Booking {
   final DateTime checkOutDate;
   final double totalPrice;
   final String status; // e.g., 'pending_approval', 'confirmed', 'cancelled', 'completed'
-
   final Apartment apartment;
   final User user;
 

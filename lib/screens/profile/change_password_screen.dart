@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:plproject/widgets/CTextField.dart';
+// import 'package:plproject/widgets/CTextField.dart'; // No longer needed
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -26,22 +26,30 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            CTextField(
+            Text("Current Password", style: theme.textTheme.titleMedium),
+            // --- REPLACED CTextField with TextFormField ---
+            TextFormField(
               controller: _currentPasswordController,
-              hintText: 'Current Password',
-              isPassword: true,
+              obscureText: true,
+              decoration: const InputDecoration(hintText: 'Enter your current password'),
             ),
-            const SizedBox(height: 16),
-            CTextField(
+            const SizedBox(height: 24),
+
+            Text("New Password", style: theme.textTheme.titleMedium),
+            // --- REPLACED CTextField with TextFormField ---
+            TextFormField(
               controller: _newPasswordController,
-              hintText: 'New Password',
-              isPassword: true,
+              obscureText: true,
+              decoration: const InputDecoration(hintText: 'Enter your new password'),
             ),
             const SizedBox(height: 16),
-            CTextField(
+
+            Text("Confirm New Password", style: theme.textTheme.titleMedium),
+            // --- REPLACED CTextField with TextFormField ---
+            TextFormField(
               controller: _confirmPasswordController,
-              hintText: 'Confirm New Password',
-              isPassword: true,
+              obscureText: true,
+              decoration: const InputDecoration(hintText: 'Re-enter your new password'),
             ),
           ],
         ),
@@ -57,8 +65,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         onPressed: () { /* TODO: Change password logic */ },
         style: ElevatedButton.styleFrom(
           minimumSize: const Size(double.infinity, 50),
-          backgroundColor: theme.colorScheme.primary,
-          foregroundColor: theme.colorScheme.onPrimary,
         ),
         child: const Text('Save Changes'),
       ),

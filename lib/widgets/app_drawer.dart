@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:plproject/providers/user_provider.dart';
-import 'package:plproject/screens/profile/edit_profile_screen.dart';
-import 'package:plproject/widgets/menu_list_item.dart';
+import 'package:plproject/screens/auth/welcome_auth_screen.dart';
+import 'package:plproject/screens/owner/owner_profile_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -13,57 +13,40 @@ class AppDrawer extends StatelessWidget {
       child: Consumer<UserProvider>(
         builder: (context, userProvider, child) {
           final user = userProvider.user;
-          final String? imageUrl = user?.profile_image;
-
           return ListView(
             padding: EdgeInsets.zero,
             children: <Widget>[
               UserAccountsDrawerHeader(
-                accountName: Text(
-                  user != null ? '${user.first_name ?? ''} ${user.last_name ?? ''}'.trim() : 'Welcome',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
-                accountEmail: Text(user?.phone ?? 'Login or Register'),
+                accountName: Text(user != null ? '${user.firstName} ${user.lastName}' : 'Guest'),
+                accountEmail: Text(user?.phone ?? 'Not logged in'),
                 currentAccountPicture: CircleAvatar(
-                  backgroundColor: Theme.of(context).primaryColor.withOpacity(0.7),
-                  child: imageUrl != null
-                      ? ClipOval(
-                          child: Image.network(
-                            imageUrl,
-                            fit: BoxFit.cover,
-                            width: 90,
-                            height: 90,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Icon(Icons.person, size: 40, color: Colors.white);
-                            },
-                          ),
-                        )
-                      : const Icon(Icons.person, size: 40, color: Colors.white),
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
+                  // --- CORRECTED: Use profileImageUrl ---
+                  backgroundImage: user?.profileImageUrl != null ? NetworkImage(user!.profileImageUrl!) : null,
+                  child: user?.profileImageUrl == null ? const Icon(Icons.person, size: 40, color: Colors.white) : null,
                 ),
               ),
-              // Simplified to only include essential user-related actions
-              MenuListItem(
-                icon: Icons.edit_outlined,
-                title: 'Edit Profile',
+              ListTile(
+                leading: const Icon(Icons.person_outline),
+                title: const Text('My Profile'),
                 onTap: () {
-                  Navigator.of(context).pop(); // Close drawer first
-                  Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const EditProfileScreen()));
+                  Navigator.of(context).pop(); // Close drawer
+                  Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const OwnerProfileScreen()));
                 },
               ),
               const Divider(),
-              if (userProvider.isLoggedIn)
-                MenuListItem(
-                  icon: Icons.logout,
-                  title: 'Logout',
-                  color: Colors.red[700],
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    userProvider.logout();
-                  },
-                ),
+              ListTile(
+                leading: const Icon(Icons.logout),
+                title: const Text('Logout'),
+                onTap: () async {
+                  await userProvider.logout();
+                  if (context.mounted) {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => const WelcomeAuthScreen()),
+                          (Route<dynamic> route) => false,
+                    );
+                  }
+                },
+              ),
             ],
           );
         },

@@ -1,76 +1,61 @@
 class User {
-  final int? id;
-  final String? first_name; // Made nullable
-  final String? last_name;  // Made nullable
-  final String? phone;
-  final String? password; 
-  final String? profile_image;
-  final String? id_card_image;
-  final String? dateOfBirth;
-  String? status;
+  final int id;
+  final String firstName;
+  final String lastName;
+  final String phone;
+  final String? birthDate;
+  final String? status;
+  final String? profileImageUrl; // CORRECTED: Handles displayable URL from backend
   String? token;
 
   User({
-    this.id,
-    this.first_name, // No longer required
-    this.last_name,  // No longer required
-    this.phone,
-    this.password,
-    this.profile_image,
-    this.id_card_image,
-    this.dateOfBirth,
+    required this.id,
+    required this.firstName,
+    required this.lastName,
+    required this.phone,
+    this.birthDate,
     this.status,
+    this.profileImageUrl,
     this.token,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
+    // The user data might be nested inside a 'user' key from the login/register response
+    final userData = json.containsKey('user') ? json['user'] as Map<String, dynamic> : json;
+
     return User(
-      id: json['id'] as int?,
-      first_name: json['first_name'] as String?,
-      last_name: json['last_name'] as String?,
-      phone: json['phone'] as String?,
-      status: json['status'] as String?,
-      token: json['token'] as String?,
-      profile_image: json['profile_image_url'] as String?,
-      dateOfBirth: json['birth_date'] as String?,
+      id: userData['id'] as int,
+      firstName: userData['first_name'] as String,
+      lastName: userData['last_name'] as String,
+      phone: userData['phone'] as String,
+      birthDate: userData['birth_date'] as String?,
+      status: userData['status'] as String?,
+      // CORRECTED: Reads the 'profile_image_url' key provided by the backend
+      profileImageUrl: userData['profile_image_url'] as String?,
+      // Token is usually at the top level of the response, not inside the 'user' object
+      token: json['access_token'] as String?,
     );
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    if (id != null) data['id'] = id;
-    if (first_name != null) data['first_name'] = first_name;
-    if (last_name != null) data['last_name'] = last_name;
-    if (phone != null) data['phone'] = phone;
-    if (password != null) data['password'] = password;
-    if (profile_image != null) data['profile_image_url'] = profile_image;
-    if (id_card_image != null) data['id_card_image_url'] = id_card_image;
-    if (dateOfBirth != null) data['birth_date'] = dateOfBirth;
-    return data;
-  }
-
+  // Helper method to update parts of the user object
   User copyWith({
     int? id,
-    String? first_name,
-    String? last_name,
+    String? firstName,
+    String? lastName,
     String? phone,
-    String? password,
-    String? profile_image,
-    String? id_card_image,
-    String? dateOfBirth,
+    String? birthDate,
     String? status,
+    String? profileImageUrl,
     String? token,
   }) {
     return User(
       id: id ?? this.id,
-      first_name: first_name ?? this.first_name,
-      last_name: last_name ?? this.last_name,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
       phone: phone ?? this.phone,
-      password: password ?? this.password,
-      profile_image: profile_image ?? this.profile_image,
-      id_card_image: id_card_image ?? this.id_card_image,
-      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+      birthDate: birthDate ?? this.birthDate,
       status: status ?? this.status,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       token: token ?? this.token,
     );
   }

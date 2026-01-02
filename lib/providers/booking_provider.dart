@@ -14,10 +14,17 @@ class BookingProvider with ChangeNotifier {
   List<Booking> _bookingRequests = [];
   String? _errorMessage;
 
+  // --- NEW: Dashboard Stats ---
+  int _newBookingsCount = 0;
+  double _totalEarnings = 0.0;
+
+  // Getters
   BookingStatusState get status => _status;
   List<Booking> get bookings => _bookings;
   List<Booking> get bookingRequests => _bookingRequests;
   String? get errorMessage => _errorMessage;
+  int get newBookingsCount => _newBookingsCount;
+  double get totalEarnings => _totalEarnings;
 
   void update(UserProvider userProvider) {
     _userProvider = userProvider;
@@ -25,12 +32,36 @@ class BookingProvider with ChangeNotifier {
 
   String? get _token => _userProvider?.token;
 
+  // --- NEW: Fetch Dashboard Stats ---
+  Future<void> fetchOwnerDashboardStats() async {
+    if (_token == null) return;
+    await fetchOwnerBookings(); 
+    _newBookingsCount = _bookings.where((b) => b.status == 'pending_approval').length;
+    _totalEarnings = _bookings.where((b) => b.status == 'completed').fold(0.0, (sum, item) => sum + item.totalPrice);
+    notifyListeners();
+  }
+
   Future<void> fetchUserBookings() async {
     if (_token == null) return;
     _status = BookingStatusState.Loading;
     notifyListeners();
     try {
       _bookings = await _apiService.getUserBookings(_token!);
+      _status = BookingStatusState.Loaded;
+    } catch (e) {
+      _status = BookingStatusState.Error;
+      _errorMessage = e.toString();
+    }
+    notifyListeners();
+  }
+
+  Future<void> fetchOwnerBookings() async {
+    if (_token == null) return;
+    _status = BookingStatusState.Loading;
+    notifyListeners();
+    try {
+      // This call assumes getOwnerBookings exists in the service and fetches all bookings for the owner.
+      _bookings = await _apiService.getOwnerBookings(_token!); 
       _status = BookingStatusState.Loaded;
     } catch (e) {
       _status = BookingStatusState.Error;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:plproject/utils/validators.dart';
-import 'package:plproject/widgets/CTextField.dart';
+
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -17,6 +17,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     if (_formKey.currentState?.validate() ?? false) {
       // TODO: Implement password reset logic
       print('Sending password reset request for phone: ${_phoneController.text}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password reset instructions sent (simulation).')),
+      );
     }
   }
 
@@ -46,25 +49,26 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 32),
               Text("Phone number", style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
-              CTextField(
+              const SizedBox(height: 8),
+              // --- REPLACED CTextField with TextFormField ---
+              TextFormField(
                 controller: _phoneController,
-                hintText: "Enter your phone number",
-                textInputType: TextInputType.phone,
+                keyboardType: TextInputType.phone,
                 maxLength: 10,
                 validator: (val) => Validators.hasMinLength(val, 10),
+                decoration: const InputDecoration(
+                  hintText: "Enter your phone number",
+                  counterText: "", // Hides the counter from appearing under the field
+                ),
               ),
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _sendResetRequest,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: theme.colorScheme.primary,
-                  foregroundColor: theme.colorScheme.onPrimary,
-                ),
-                child: const Text('Send Reset Instructions', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                // No style needed, it will be picked up from the central theme
+                child: const Text('Send Reset Instructions'),
               ),
             ],
-          ),
+          ), 
         ),
       ),
     );

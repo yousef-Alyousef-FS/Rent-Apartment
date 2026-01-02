@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:plproject/models/apartment.dart';
 import 'package:plproject/providers/apartment_provider.dart';
+import 'package:plproject/providers/booking_provider.dart';
+import 'package:plproject/screens/apartments/apartment_details_screen.dart';
 import 'package:plproject/screens/owner/add_apartment_screen.dart';
-import 'package:plproject/screens/owner/edit_apartment_screen.dart';
-import 'package:plproject/screens/owner/my_apartments_screen.dart';
 import 'package:plproject/screens/owner/owner_bookings_screen.dart';
-import 'package:plproject/screens/owner/owner_profile_screen.dart';
+import 'package:plproject/screens/owner/my_apartments_screen.dart';
 
 class OwnerDashboard extends StatefulWidget {
   const OwnerDashboard({super.key});
@@ -20,37 +20,30 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ApartmentProvider>(context, listen: false).fetchMyApartments();
+      _refreshData();
     });
   }
 
-  List<Apartment> _getMockApartments() {
-    return [
-      Apartment(id: 101, title: 'My First Apartment', description: 'Mock description', location: 'City Center', price: 120, bedrooms: 2, bathrooms: 1, area: 90, imageUrls: []),
-      Apartment(id: 102, title: 'My Second Apartment', description: 'Mock description', location: 'Suburb Area', price: 95, bedrooms: 3, bathrooms: 2, area: 120, imageUrls: []),
-    ];
+  Future<void> _refreshData() async {
+    // Use Future.wait to run fetches in parallel for efficiency
+    await Future.wait([
+      Provider.of<ApartmentProvider>(context, listen: false).fetchMyApartments(),
+      Provider.of<BookingProvider>(context, listen: false).fetchOwnerDashboardStats(),
+    ]);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Owner Dashboard'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle_outlined),
-            onPressed: () {
-              Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const OwnerProfileScreen()));
-            },
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Owner Dashboard')),
       body: RefreshIndicator(
-        onRefresh: () => Provider.of<ApartmentProvider>(context, listen: false).fetchMyApartments(),
+        onRefresh: _refreshData,
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
+            Text('Welcome, Owner!', style: theme.textTheme.headlineMedium),
+            const SizedBox(height: 16),
             _buildStatsGrid(theme),
             const SizedBox(height: 24),
             _buildSectionHeader(theme, 'My Apartments', () {
@@ -61,9 +54,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const AddApartmentScreen()));
-        },
+        onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const AddApartmentScreen())),
         label: const Text('Add Apartment'),
         icon: const Icon(Icons.add),
       ),
@@ -71,32 +62,23 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
   }
 
   Widget _buildStatsGrid(ThemeData theme) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      childAspectRatio: 1.5,
-      children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('\$12,500', style: theme.textTheme.headlineSmall), Text('Total Earnings')]),
-          ),
-        ),
-        InkWell(
-          onTap: () {
-            Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const OwnerBookingsScreen()));
-          },
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('3', style: theme.textTheme.headlineSmall), Text('New Bookings')]),
-            ),
-          ),
-        ),
-      ],
+    return Consumer<BookingProvider>(
+      builder: (context, bookingProvider, child) {
+        return GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 1.7,
+          children: [
+            InkWell(
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const OwnerBookingsScreen())),
+                child: Card(child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(bookingProvider.newBookingsCount.toString(), style: theme.textTheme.headlineSmall), const Text('New Bookings')])))),
+            Card(child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('\$${bookingProvider.totalEarnings.toStringAsFixed(0)}', style: theme.textTheme.headlineSmall), const Text('Total Earnings')]))),
+          ],
+        );
+      },
     );
   }
 
@@ -104,7 +86,7 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: theme.textTheme.headlineSmall),
+        Text(title, style: theme.textTheme.titleLarge),
         TextButton(onPressed: onViewAll, child: const Text('View All')),
       ],
     );
@@ -114,21 +96,26 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
     return Consumer<ApartmentProvider>(
       builder: (context, provider, child) {
         if (provider.status == ApartmentStatus.Loading) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: Padding(padding: EdgeInsets.symmetric(vertical: 32), child: CircularProgressIndicator()));
         }
-        final apartments = provider.myApartments.isEmpty ? _getMockApartments() : provider.myApartments;
-        final previewApartments = apartments.take(3).toList();
-
+        if (provider.status == ApartmentStatus.Error) {
+          return Center(child: Padding(padding: const EdgeInsets.symmetric(vertical: 32), child: Text(provider.errorMessage ?? 'Could not load your apartments.')));
+        }
+        if (provider.myApartments.isEmpty) {
+          return const Center(child: Padding(padding: EdgeInsets.symmetric(vertical: 32), child: Text('You have not added any apartments yet.')));
+        }
         return Column(
-          children: previewApartments.map((apartment) => Card(
+          children: provider.myApartments.take(3).map((apartment) => Card(
             margin: const EdgeInsets.symmetric(vertical: 4.0),
             child: ListTile(
-              title: Text(apartment.title),
-              subtitle: Text(apartment.location),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => EditApartmentScreen(apartment: apartment)));
-              },
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              title: Text(apartment.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+              // --- UPDATED: Subtitle now uses new fields ---
+              subtitle: Text('${apartment.rooms ?? 0} rooms in ${apartment.city ?? 'N/A'}'), 
+              trailing: Text('\$${apartment.price}/night', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (ctx) => ApartmentDetailsScreen(apartment: apartment, isOwnerView: true),
+              )),
             ),
           )).toList(),
         );

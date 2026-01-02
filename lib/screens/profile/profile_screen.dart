@@ -87,10 +87,10 @@ class ProfileScreen extends StatelessWidget {
   // This widget remains local as it's unique to this screen
   Widget _buildProfileHeader(BuildContext context, User? user) {
     final theme = Theme.of(context);
-    final String displayName = user?.first_name != null
-        ? '${user!.first_name} ${user.last_name ?? ''}'.trim()
+    final String displayName = user?.firstName != null
+        ? '${user!.firstName} ${user.lastName ?? ''}'.trim()
         : 'Guest';
-    final String? imageUrl = user?.profile_image;
+    final String? imageUrl = user?.profileImageUrl;
 
     return InkWell(
       onTap: () { /* TODO: Navigate to Edit Profile only if logged in */ },

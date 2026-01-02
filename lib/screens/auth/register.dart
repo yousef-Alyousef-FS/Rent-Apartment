@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:plproject/providers/user_provider.dart';
 import 'package:plproject/screens/auth/complete_profile.dart';
 import 'package:plproject/utils/validators.dart';
-import 'package:plproject/widgets/CTextField.dart';
+// import 'package:plproject/widgets/CTextField.dart'; // No longer needed
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -30,21 +30,23 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final navigator = Navigator.of(context);
     final isAvailable = await userProvider.checkPhoneAndNavigate(_phoneController.text);
 
-    if (isAvailable && mounted) {
-      Navigator.push(
-        context,
+    if (!mounted) return;
+
+    if (isAvailable) {
+
+      navigator.push(
         MaterialPageRoute(
           builder: (context) => CompleteProfile(
-            phone: _phoneController.text,
+            phone: _phoneController.text.trim(),
             password: _passwordController.text,
           ),
         ),
       );
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -63,15 +65,36 @@ class _RegisterPageState extends State<RegisterPage> {
                  SizedBox(height: 30, child: Text("Let's get you started!", style: theme.textTheme.bodyMedium, textAlign: TextAlign.center,)),
                 
                  Text("Phone number", style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),),
-                 CTextField(controller: _phoneController, hintText: "Enter your phone number", maxLength: 10, textInputType: TextInputType.phone, validator: Validators.isNotEmpty,),
+                 // --- REPLACED CTextField with TextFormField ---
+                 TextFormField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    maxLength: 10,
+                    validator: Validators.isNotEmpty,
+                    decoration: const InputDecoration(hintText: "Enter your phone number", counterText: ""),
+                 ),
                  const SizedBox(height: 20,),
                 
                  Text("Create password", style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),),
-                 CTextField(controller: _passwordController, hintText: "Enter password", maxLength: 10, isPassword: true, validator: (value) => Validators.hasMinLength(value, 8),),
+                 // --- REPLACED CTextField with TextFormField ---
+                 TextFormField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    maxLength: 20,
+                    validator: (value) => Validators.hasMinLength(value, 8),
+                    decoration: const InputDecoration(hintText: "Enter password", counterText: ""),
+                 ),
                  const SizedBox(height: 20,),
                 
                  Text("Confirm password", style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),),
-                 CTextField(controller: _confirmPasswordController, hintText: "Re-enter your password", maxLength: 10, isPassword: true, validator: (value) { if (value != _passwordController.text) { return 'Passwords do not match!'; } return null; },),
+                 // --- REPLACED CTextField with TextFormField ---
+                 TextFormField(
+                    controller: _confirmPasswordController,
+                    obscureText: true,
+                    maxLength: 20,
+                    validator: (value) { if (value != _passwordController.text) { return 'Passwords do not match!'; } return null; },
+                    decoration: const InputDecoration(hintText: "Re-enter your password", counterText: ""),
+                 ),
                  const SizedBox(height: 50,),
 
                 if (userProvider.status == UserStatus.Error && userProvider.errorMessage != null)

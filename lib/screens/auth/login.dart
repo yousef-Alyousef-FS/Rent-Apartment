@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:plproject/providers/user_provider.dart';
 import 'package:plproject/screens/auth/auth_gate.dart';
 import 'package:plproject/screens/auth/forgot_password_screen.dart';
 import 'package:plproject/screens/auth/register.dart';
 import 'package:plproject/utils/validators.dart';
-import 'package:plproject/widgets/CTextField.dart';
+// import 'package:plproject/widgets/CTextField.dart'; // No longer needed
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -36,14 +37,11 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (success && mounted) {
-      // The most robust solution: Navigate back to the AuthGate.
-      // This tells the app to re-evaluate the authentication state from the root.
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const AuthGate()),
         (route) => false,
       );
     }
-    // If login fails, the Consumer below will automatically show the error message.
   }
 
   @override
@@ -64,11 +62,25 @@ class _LoginScreenState extends State<LoginScreen> {
                 SizedBox(height: 50, child: Text("Login to continue using the app...", style: theme.textTheme.bodyMedium,)),
                 
                 Text("Phone number", style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),),
-                CTextField(controller: _phoneController, hintText: "Enter your phone number", validator: (val) => Validators.hasMinLength(val, 10), textInputType: TextInputType.phone, maxLength: 10,),
+                // --- REPLACED CTextField with TextFormField ---
+                TextFormField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  validator: (val) => Validators.hasMinLength(val, 10),
+                  maxLength: 10,
+                  decoration: const InputDecoration(hintText: "Enter your phone number", counterText: ""),
+                ),
                 const SizedBox(height: 25,),
                 
                 Text("Password", style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),),
-                CTextField(controller: _passwordController, hintText: "Enter your password", isPassword: true, maxLength: 10, validator: (val) => Validators.hasMinLength(val, 4),),
+                // --- REPLACED CTextField with TextFormField ---
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: true, // Replaces isPassword
+                  validator: (val) => Validators.hasMinLength(val, 4),
+                   maxLength: 20,
+                  decoration: const InputDecoration(hintText: "Enter your password", counterText: ""),
+                ),
                 
                 Container(
                   alignment: Alignment.centerRight,
@@ -91,11 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(15),
                       border: Border.all(color: theme.colorScheme.error.withOpacity(0.3), width: 1),
                     ),
-                    child: Text(
-                      userProvider.errorMessage!,
-                      style: TextStyle(color: theme.colorScheme.error, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
+                    child: Text(userProvider.errorMessage!, style: TextStyle(color: theme.colorScheme.error, fontWeight: FontWeight.bold), textAlign: TextAlign.center,),
                   ),
 
                 SizedBox(

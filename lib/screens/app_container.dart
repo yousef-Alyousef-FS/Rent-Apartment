@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:plproject/screens/booking/bookings_list_screen.dart';
 import 'package:plproject/screens/main/explore_screen.dart';
 import 'package:plproject/screens/main/favorites_screen.dart';
 import 'package:plproject/screens/main/home_screen.dart';
+import 'package:plproject/screens/owner/owner_dashboard.dart';
 
 class AppContainer extends StatefulWidget {
   const AppContainer({super.key});
@@ -13,11 +15,12 @@ class AppContainer extends StatefulWidget {
 class _AppContainerState extends State<AppContainer> {
   int _selectedIndex = 0;
 
-  // The list of screens managed by the BottomNavBar, reflecting the user's vision.
   static const List<Widget> _mainScreens = <Widget>[
     HomeScreen(),
     ExploreScreen(),
     FavoritesScreen(),
+    OwnerDashboard(),
+    BookingsListScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -29,7 +32,6 @@ class _AppContainerState extends State<AppContainer> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // IndexedStack preserves the state of each screen when switching.
       body: IndexedStack(
         index: _selectedIndex,
         children: _mainScreens,
@@ -42,8 +44,8 @@ class _AppContainerState extends State<AppContainer> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.explore_outlined),
-            activeIcon: Icon(Icons.explore),
+            icon: Icon(Icons.search_outlined),
+            activeIcon: Icon(Icons.search),
             label: 'Explore',
           ),
           BottomNavigationBarItem(
@@ -51,13 +53,24 @@ class _AppContainerState extends State<AppContainer> {
             activeIcon: Icon(Icons.favorite),
             label: 'Favorites',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.business_outlined),
+            activeIcon: Icon(Icons.business),
+            label: 'My Place',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bookmark_border),
+            activeIcon: Icon(Icons.bookmark),
+            label: 'Bookings',
+          ),
         ],
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Theme.of(context).primaryColor,
         unselectedItemColor: Colors.grey[600],
-        showUnselectedLabels: true,
+        showSelectedLabels: true,
+        showUnselectedLabels: false,
       ),
     );
   }

@@ -17,8 +17,6 @@ import '../auth/pending_approval_screen.dart';
 import '../main/home_screen.dart';
 import '../main/explore_screen.dart';
 import '../apartments/apartment_details_screen.dart';
-import '../main/search_screen.dart';
-import '../main/filter_screen.dart';
 import '../main/settings_screen.dart';
 
 // Booking
@@ -58,10 +56,6 @@ class ScreenGallery extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // --- MOCK DATA --- 
-    final mockApartment = Apartment(id: 1, title: 'Luxury Villa', description: 'A beautiful villa with a stunning view.', price: 350, location: 'Beverly Hills, CA', bedrooms: 5, bathrooms: 4, area: 450, imageUrls: ['https://via.placeholder.com/400x250.png/007BFF/FFFFFF?text=Villa', 'https://via.placeholder.com/400x250.png/6c757d/FFFFFF?text=Living+Room'], average_rating: 4.8, reviews_count: 62);
-    final mockUser = User(id: 1, first_name: 'John', last_name: 'Doe', phone: '+123456789');
-    final mockBooking = Booking(id: 1, checkInDate: DateTime.now(), checkOutDate: DateTime.now().add(const Duration(days: 5)), totalPrice: 1750, status: 'pending_approval', apartment: mockApartment, user: mockUser);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Screen Gallery')),
@@ -78,22 +72,18 @@ class ScreenGallery extends StatelessWidget {
           
           _buildCategoryHeader(context, 'Main App Flow'),
           _buildNavButton(context, 'Home Screen', const HomeScreen()),
-          _buildNavButton(context, 'Apartment Details', ApartmentDetailsScreen(apartment: mockApartment)),
-          _buildNavButton(context, 'Explore Screen', const ExploreScreen()),
-          _buildNavButton(context, 'Search Screen', const SearchScreen()),
-          _buildNavButton(context, 'Filter Screen', const FilterScreen()),
+          _buildNavButton(context, 'Explore Screen (with search & filter)', const ExploreScreen()), // Updated label
+          // _buildNavButton(context, 'Search Screen', const SearchScreen()), // Removed
           _buildNavButton(context, 'Settings', const SettingsScreen()),
 
           _buildCategoryHeader(context, 'Booking Flow'),
           _buildNavButton(context, 'My Bookings List', const BookingsListScreen()),
-          _buildNavButton(context, 'Write a Review', ReviewScreen(apartmentId: mockApartment.id)),
           _buildNavButton(context, 'Booking Success', const BookingSuccessScreen()),
 
           _buildCategoryHeader(context, 'Owner Flow'),
            _buildNavButton(context, 'Owner Dashboard', const OwnerDashboard()),
           _buildNavButton(context, 'Add Apartment', const AddApartmentScreen()),
           _buildNavButton(context, 'My Apartments', const MyApartmentsScreen()),
-          _buildNavButton(context, 'Edit Apartment', EditApartmentScreen(apartment: mockApartment)),
           _buildNavButton(context, 'Owner Bookings', const OwnerBookingsScreen()),
 
           _buildCategoryHeader(context, 'User Profile'),

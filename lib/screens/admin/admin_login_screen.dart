@@ -12,15 +12,17 @@ class AdminLoginScreen extends StatefulWidget {
 
 class _AdminLoginScreenState extends State<AdminLoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'admin@example.com');
+  // --- UPDATED: from email to phone ---
+  final _phoneController = TextEditingController(text: '0912345678');
   final _passwordController = TextEditingController(text: 'password');
 
   Future<void> _login() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final adminProvider = Provider.of<AdminProvider>(context, listen: false);
+    // --- UPDATED: Pass phone number instead of email ---
     final success = await adminProvider.login(
-      _emailController.text,
+      _phoneController.text,
       _passwordController.text,
     );
 
@@ -29,12 +31,11 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
         MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
       );
     } 
-    // The provider will hold the error message if login fails
   }
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -55,10 +56,12 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               children: [
                 Text('Welcome, Admin', style: theme.textTheme.headlineMedium, textAlign: TextAlign.center),
                 const SizedBox(height: 32),
+                // --- UPDATED: TextFormField for Phone Number ---
                 TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
-                  validator: (v) => v!.isEmpty ? 'Email is required' : null,
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(labelText: 'Phone Number', border: OutlineInputBorder()),
+                  validator: (v) => v!.isEmpty ? 'Phone number is required' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -70,7 +73,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                 const SizedBox(height: 24),
                 Consumer<AdminProvider>(
                   builder: (context, provider, child) {
-
                     if (provider.status == AdminStatus.Error && provider.errorMessage != null) {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16.0),

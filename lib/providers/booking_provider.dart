@@ -10,21 +10,15 @@ class BookingProvider with ChangeNotifier {
   UserProvider? _userProvider;
 
   BookingStatusState _status = BookingStatusState.Idle;
-  List<Booking> _bookings = [];
-  List<Booking> _bookingRequests = [];
   String? _errorMessage;
-
-  // --- NEW: Dashboard Stats ---
-  int _newBookingsCount = 0;
-  double _totalEarnings = 0.0;
+  List<Booking> _myBookings = [];
+  List<Booking> _ownerBookings = [];
 
   // Getters
   BookingStatusState get status => _status;
-  List<Booking> get bookings => _bookings;
-  List<Booking> get bookingRequests => _bookingRequests;
   String? get errorMessage => _errorMessage;
-  int get newBookingsCount => _newBookingsCount;
-  double get totalEarnings => _totalEarnings;
+  List<Booking> get myBookings => _myBookings;
+  List<Booking> get ownerBookings => _ownerBookings;
 
   void update(UserProvider userProvider) {
     _userProvider = userProvider;
@@ -32,117 +26,87 @@ class BookingProvider with ChangeNotifier {
 
   String? get _token => _userProvider?.token;
 
-  // --- NEW: Fetch Dashboard Stats ---
-  Future<void> fetchOwnerDashboardStats() async {
-    if (_token == null) return;
-    await fetchOwnerBookings(); 
-    _newBookingsCount = _bookings.where((b) => b.status == 'pending_approval').length;
-    _totalEarnings = _bookings.where((b) => b.status == 'completed').fold(0.0, (sum, item) => sum + item.totalPrice);
-    notifyListeners();
-  }
-
-  Future<void> fetchUserBookings() async {
-    if (_token == null) return;
-    _status = BookingStatusState.Loading;
-    notifyListeners();
-    try {
-      _bookings = await _apiService.getUserBookings(_token!);
-      _status = BookingStatusState.Loaded;
-    } catch (e) {
-      _status = BookingStatusState.Error;
-      _errorMessage = e.toString();
+  Future<Booking?> createBooking({
+    required int apartmentId,
+    required DateTime checkIn,
+    required DateTime checkOut,
+  }) async
+  {
+    if (_token == null) {
+      _errorMessage = "Authentication token not found.";
+      return null;
     }
-    notifyListeners();
-  }
-
-  Future<void> fetchOwnerBookings() async {
-    if (_token == null) return;
     _status = BookingStatusState.Loading;
     notifyListeners();
-    try {
-      // This call assumes getOwnerBookings exists in the service and fetches all bookings for the owner.
-      _bookings = await _apiService.getOwnerBookings(_token!); 
-      _status = BookingStatusState.Loaded;
-    } catch (e) {
-      _status = BookingStatusState.Error;
-      _errorMessage = e.toString();
-    }
-    notifyListeners();
-  }
 
-  Future<bool> createBooking({required int apartmentId, required DateTime checkIn, required DateTime checkOut}) async {
-    if (_token == null) return false;
-    _status = BookingStatusState.Loading;
-    notifyListeners();
     try {
-      final newBooking = await _apiService.createBooking(_token!, apartmentId: apartmentId, checkIn: checkIn, checkOut: checkOut);
-      _bookings.add(newBooking);
+      final bookingData = {
+        'apartment_id': apartmentId,
+        'check_in_date': checkIn.toIso8601String().split('T')[0],
+        'check_out_date': checkOut.toIso8601String().split('T')[0],
+      };
+      final newBooking = await _apiService.createBooking(bookingData, _token!);
+      _myBookings.insert(0, newBooking);
       _status = BookingStatusState.Loaded;
       notifyListeners();
-      return true;
+      return newBooking;
     } catch (e) {
       _errorMessage = e.toString();
       _status = BookingStatusState.Error;
       notifyListeners();
-      return false;
+      return null;
     }
+  }
+
+  Future<void> fetchMyBookings({bool forceRefresh = false}) async {
+    if (_token == null) return;
+    if (_status == BookingStatusState.Loading && !forceRefresh) return;
+    if (_myBookings.isNotEmpty && !forceRefresh) return;
+
+    _status = BookingStatusState.Loading;
+    notifyListeners();
+    try {
+      _myBookings = await _apiService.getMyBookings(_token!);
+      _status = BookingStatusState.Loaded;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _status = BookingStatusState.Error;
+    }
+    notifyListeners();
+  }
+
+  Future<void> fetchOwnerBookings({bool forceRefresh = false}) async {
+    if (_token == null) return;
+    if (_status == BookingStatusState.Loading && !forceRefresh) return;
+    if (_ownerBookings.isNotEmpty && !forceRefresh) return;
+
+    _status = BookingStatusState.Loading;
+    notifyListeners();
+    try {
+      _ownerBookings = await _apiService.getOwnerBookings(_token!);
+      _status = BookingStatusState.Loaded;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _status = BookingStatusState.Error;
+    }
+    notifyListeners();
   }
 
   Future<bool> cancelBooking(int bookingId) async {
     if (_token == null) return false;
-    final bookingIndex = _bookings.indexWhere((b) => b.id == bookingId);
-    if (bookingIndex == -1) return false;
-    final originalBooking = _bookings[bookingIndex];
-    _bookings[bookingIndex] = originalBooking.copyWith(status: 'cancelled');
-    notifyListeners();
-    try {
-      await _apiService.cancelBooking(_token!, bookingId);
-      return true;
-    } catch (e) {
-      _bookings[bookingIndex] = originalBooking;
-      _errorMessage = e.toString();
-      notifyListeners();
-      return false;
-    }
-  }
-
-  Future<void> fetchBookingRequests() async {
-    if (_token == null) return;
     _status = BookingStatusState.Loading;
     notifyListeners();
+
     try {
-      _bookingRequests = await _apiService.getBookingRequests(_token!);
+      await _apiService.cancelBooking(bookingId, _token!);
+      _myBookings.removeWhere((b) => b.id == bookingId);
+      _ownerBookings.removeWhere((b) => b.id == bookingId);
       _status = BookingStatusState.Loaded;
+      notifyListeners();
+      return true;
     } catch (e) {
+      _errorMessage = e.toString();
       _status = BookingStatusState.Error;
-      _errorMessage = e.toString();
-    }
-    notifyListeners();
-  }
-
-  Future<bool> approveBooking(int bookingId) async {
-    if (_token == null) return false;
-    try {
-      await _apiService.approveBooking(_token!, bookingId);
-      _bookingRequests.removeWhere((b) => b.id == bookingId);
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _errorMessage = e.toString();
-      notifyListeners();
-      return false;
-    }
-  }
-
-  Future<bool> rejectBooking(int bookingId) async {
-    if (_token == null) return false;
-    try {
-      await _apiService.rejectBooking(_token!, bookingId);
-      _bookingRequests.removeWhere((b) => b.id == bookingId);
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _errorMessage = e.toString();
       notifyListeners();
       return false;
     }
@@ -153,20 +117,29 @@ class BookingProvider with ChangeNotifier {
     required DateTime newCheckIn,
     required DateTime newCheckOut,
   }) async {
-    if (_token == null) return false;
+    if (_token == null) {
+      _errorMessage = "Authentication token not found.";
+      return false;
+    }
     _status = BookingStatusState.Loading;
     notifyListeners();
+
     try {
-      final updatedBooking = await _apiService.requestBookingUpdate(
-        _token!,
-        bookingId: bookingId,
-        newCheckIn: newCheckIn,
-        newCheckOut: newCheckOut,
-      );
-      final index = _bookings.indexWhere((b) => b.id == bookingId);
-      if (index != -1) {
-        _bookings[index] = updatedBooking;
+      final updateData = {
+        'check_in_date': newCheckIn.toIso8601String().split('T')[0],
+        'check_out_date': newCheckOut.toIso8601String().split('T')[0],
+      };
+      final updatedBooking = await _apiService.updateBooking(bookingId, updateData, _token!);
+
+      final myIndex = _myBookings.indexWhere((b) => b.id == bookingId);
+      if (myIndex != -1) {
+        _myBookings[myIndex] = updatedBooking;
       }
+      final ownerIndex = _ownerBookings.indexWhere((b) => b.id == bookingId);
+      if (ownerIndex != -1) {
+        _ownerBookings[ownerIndex] = updatedBooking;
+      }
+
       _status = BookingStatusState.Loaded;
       notifyListeners();
       return true;
@@ -174,6 +147,42 @@ class BookingProvider with ChangeNotifier {
       _errorMessage = e.toString();
       _status = BookingStatusState.Error;
       notifyListeners();
+      return false;
+    }
+  }
+
+  // --- UPDATED: Implemented the approve booking logic ---
+  Future<bool> approveBooking(int bookingId) async {
+    if (_token == null) return false;
+    try {
+      final updatedBooking = await _apiService.approveBooking(bookingId, _token!);
+      final index = _ownerBookings.indexWhere((b) => b.id == bookingId);
+      if (index != -1) {
+        _ownerBookings[index] = updatedBooking;
+      }
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners(); // Notify UI of the error
+      return false;
+    }
+  }
+
+  // --- UPDATED: Implemented the reject booking logic ---
+  Future<bool> rejectBooking(int bookingId) async {
+    if (_token == null) return false;
+    try {
+      final updatedBooking = await _apiService.rejectBooking(bookingId, _token!);
+      final index = _ownerBookings.indexWhere((b) => b.id == bookingId);
+      if (index != -1) {
+        _ownerBookings[index] = updatedBooking;
+      }
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners(); // Notify UI of the error
       return false;
     }
   }

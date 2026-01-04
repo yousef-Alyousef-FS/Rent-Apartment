@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:plproject/models/booking.dart';
 import 'package:plproject/providers/booking_provider.dart';
 import 'package:plproject/screens/owner/manage_booking_screen.dart';
+import 'package:plproject/generated/app_localizations.dart';
+import 'package:plproject/screens/booking/booking_detail_screen.dart';
 
 class OwnerBookingsScreen extends StatefulWidget {
   const OwnerBookingsScreen({super.key});
@@ -17,44 +20,45 @@ class _OwnerBookingsScreenState extends State<OwnerBookingsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _fetchData();
+      _fetchData(forceRefresh: true);
     });
   }
 
-  Future<void> _fetchData() {
-    // --- CORRECTED: Called the correct fetch method --- 
-    return Provider.of<BookingProvider>(context, listen: false).fetchBookingRequests();
+  Future<void> _fetchData({bool forceRefresh = false}) {
+    return Provider.of<BookingProvider>(context, listen: false).fetchOwnerBookings(forceRefresh: forceRefresh);
   }
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return DefaultTabController(
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Apartment Bookings'),
-          bottom: const TabBar(tabs: [Tab(text: 'New Requests'), Tab(text: 'Upcoming'), Tab(text: 'Completed')]),
+          title: Text(loc.apartmentBookings),
+          bottom: TabBar(tabs: [Tab(text: loc.newRequests), Tab(text: loc.upcoming), Tab(text: loc.completed)]),
         ),
         body: RefreshIndicator(
-          onRefresh: _fetchData,
+          onRefresh: () => _fetchData(forceRefresh: true),
           child: Consumer<BookingProvider>(
             builder: (context, provider, child) {
-              if (provider.status == BookingStatusState.Loading) {
+              if (provider.status == BookingStatusState.Loading && provider.ownerBookings.isEmpty) {
                 return const Center(child: CircularProgressIndicator());
               }
-              if (provider.status == BookingStatusState.Error) {
-                return Center(child: Text(provider.errorMessage ?? 'An error occurred.'));
+              if (provider.status == BookingStatusState.Error && provider.ownerBookings.isEmpty) {
+                return Center(child: Text(loc.errorOccurred(provider.errorMessage ?? '...')));
               }
 
-              final newRequests = provider.bookings.where((b) => b.status == 'pending_approval').toList();
-              final upcoming = provider.bookings.where((b) => b.status == 'confirmed').toList();
-              final completed = provider.bookings.where((b) => b.status == 'completed').toList();
+              final newRequests = provider.ownerBookings.where((b) => b.status == 'pending_approval').toList();
+              final upcoming = provider.ownerBookings.where((b) => b.status == 'confirmed').toList();
+              final completed = provider.ownerBookings.where((b) => b.status == 'completed').toList();
 
               return TabBarView(
                 children: [
-                  _buildBookingsList(context, newRequests, 'No new booking requests.', isRequest: true),
-                  _buildBookingsList(context, upcoming, 'No upcoming bookings.'),
-                  _buildBookingsList(context, completed, 'No completed bookings.'),
+                  _buildBookingsList(context, newRequests, loc.noNewRequests, isRequest: true),
+                  _buildBookingsList(context, upcoming, loc.noUpcomingBookings),
+                  _buildBookingsList(context, completed, loc.noCompletedBookings),
                 ],
               );
             },
@@ -78,6 +82,9 @@ class _OwnerBookingsScreenState extends State<OwnerBookingsScreen> {
   }
 
   Widget _buildBookingCard(BuildContext context, Booking booking, bool isRequest) {
+    final loc = AppLocalizations.of(context)!;
+    final dateFormat = DateFormat('yMd', loc.localeName);
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       child: ListTile(
@@ -88,12 +95,15 @@ class _OwnerBookingsScreenState extends State<OwnerBookingsScreen> {
           child: booking.user.profileImageUrl == null ? const Icon(Icons.person) : null,
         ),
         title: Text('${booking.user.firstName} ${booking.user.lastName}', style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text('${booking.apartment.title}\nDates: ${booking.checkInDate.toLocal().toString().split(' ')[0]} - ${booking.checkOutDate.toLocal().toString().split(' ')[0]}'),
+        subtitle: Text('${booking.apartment.title}\n${loc.dates}: ${dateFormat.format(booking.checkInDate)} - ${dateFormat.format(booking.checkOutDate)}'),
         trailing: isRequest ? const Icon(Icons.chevron_right) : null,
         isThreeLine: true,
+        // --- UPDATED: All cards are now tappable ---
         onTap: () {
           if (isRequest) {
             Navigator.of(context).push(MaterialPageRoute(builder: (context) => ManageBookingScreen(booking: booking)));
+          } else {
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => BookingDetailScreen(booking: booking)));
           }
         },
       ),

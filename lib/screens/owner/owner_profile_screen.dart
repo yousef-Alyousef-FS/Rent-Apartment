@@ -1,72 +1,122 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:plproject/providers/user_provider.dart';
+import 'package:plproject/generated/app_localizations.dart';
+import 'package:plproject/screens/auth/welcome_auth_screen.dart';
+import 'package:plproject/screens/profile/change_password_screen.dart';
+import 'package:plproject/screens/profile/edit_profile_screen.dart';
 
 class OwnerProfileScreen extends StatelessWidget {
   const OwnerProfileScreen({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Owner Profile'),
-      ),
-      body: ListView(
-        children: [
-          _buildProfileHeader(theme),
-          const SizedBox(height: 24),
-          _buildSectionHeader(theme, 'Account Settings'),
-          ListTile(
-            leading: const Icon(Icons.person_outline),
-            title: const Text('Edit Personal Info'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () { /* TODO: Navigate to Edit Owner Profile */ },
-          ),
-          ListTile(
-            leading: const Icon(Icons.lock_outline),
-            title: const Text('Change Password'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () { /* TODO: Navigate to Change Password */ },
-          ),
-
-          _buildSectionHeader(theme, 'Business Settings'),
-           ListTile(
-            leading: const Icon(Icons.account_balance_wallet_outlined),
-            title: const Text('Payout Methods'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () { /* TODO: Navigate to Payout Methods */ },
-          ),
-           ListTile(
-            leading: const Icon(Icons.history_toggle_off),
-            title: const Text('Transaction History'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () { /* TODO: Navigate to Transaction History */ },
-          ),
-          const Divider(),
-           ListTile(
-            leading: Icon(Icons.logout, color: Colors.red[700]),
-            title: Text('Logout', style: TextStyle(color: Colors.red[700])),
-            onTap: () { /* TODO: Implement logout */ },
-          ),
-        ],
-      ),
+  void _showLogoutDialog(BuildContext context, AppLocalizations loc) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(loc.confirmLogout),
+          content: Text(loc.areYouSureLogout),
+          actions: <Widget>[
+            TextButton(
+              child: Text(loc.cancel),
+              onPressed: () => Navigator.of(dialogContext).pop(),
+            ),
+            TextButton(
+              child: Text(loc.logout, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              onPressed: () async {
+                await userProvider.logout();
+                if (context.mounted) {
+                  Navigator.of(dialogContext).pop(); 
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => const WelcomeAuthScreen()),
+                    (route) => false,
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildProfileHeader(ThemeData theme) {
+  void _showFeatureNotAvailable(BuildContext context, AppLocalizations loc) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(loc.featureNotAvailable)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final loc = AppLocalizations.of(context)!;
+    final user = Provider.of<UserProvider>(context).user;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(loc.ownerProfile),
+      ),
+      body: user == null
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              children: [
+                _buildProfileHeader(theme, user, loc),
+                const SizedBox(height: 24),
+                _buildSectionHeader(theme, loc.accountSettings),
+                ListTile(
+                  leading: const Icon(Icons.person_outline),
+                  title: Text(loc.editProfile),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const EditProfileScreen()));
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.lock_outline),
+                  title: Text(loc.changePassword),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                     Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const ChangePasswordScreen()));
+                  },
+                ),
+                _buildSectionHeader(theme, loc.businessSettings),
+                ListTile(
+                  leading: const Icon(Icons.account_balance_wallet_outlined),
+                  title: Text(loc.payoutMethods),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _showFeatureNotAvailable(context, loc),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.history_toggle_off),
+                  title: Text(loc.transactionHistory),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _showFeatureNotAvailable(context, loc),
+                ),
+                const Divider(),
+                ListTile(
+                  leading: Icon(Icons.logout, color: Colors.red[700]),
+                  title: Text(loc.logout, style: TextStyle(color: Colors.red[700])),
+                  onTap: () => _showLogoutDialog(context, loc),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildProfileHeader(ThemeData theme, user, AppLocalizations loc) {
     return Container(
       color: theme.primaryColor.withOpacity(0.1),
       padding: const EdgeInsets.all(24.0),
       child: Column(
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 50,
-            // backgroundImage: NetworkImage('...'), // Placeholder for owner image
-            child: Icon(Icons.business_center, size: 50),
+            backgroundImage: user.profileImageUrl != null ? NetworkImage(user.profileImageUrl!) : null,
+            child: user.profileImageUrl == null ? const Icon(Icons.business_center, size: 50) : null,
           ),
           const SizedBox(height: 16),
-          Text('Yasser Otani', style: theme.textTheme.headlineSmall), // Mock Name
-          const SizedBox(height: 4),
-          Text('Owner since Jan 2024', style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600])),
+          Text('${user.firstName} ${user.lastName}', style: theme.textTheme.headlineSmall),
         ],
       ),
     );

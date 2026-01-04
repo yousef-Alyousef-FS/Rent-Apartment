@@ -1,0 +1,4 @@
+# This is the standard, simple configuration.
+arb-dir: lib/generated
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart

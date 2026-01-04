@@ -1,36 +1,37 @@
 name: plproject
 description: "A new Flutter project."
 publish_to: 'none'
-
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.10.3
+  sdk: '>=3.3.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
-  google_fonts: ^6.2.1
-  # Core packages
-  cupertino_icons: ^1.0.8
-  http: ^1.2.1
+  cupertino_icons: ^1.0.6
   provider: ^6.1.2
-  shared_preferences: ^2.2.3
-  image_picker: ^1.1.2
-  cached_network_image: ^3.4.1
-
+  http: ^1.2.1
+  shared_preferences: ^2.2.2
+  image_picker: ^1.0.7
+  url_launcher: ^6.2.6 # NEW: For opening maps
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
+  flutter_lints: ^3.0.0
+  # CORRECTED: Use the version compatible with the Flutter SDK
+  intl: ^0.20.2
 
 flutter:
+  generate: true
   uses-material-design: true
   assets:
-    - assets/images/
-    - assets/fonts/
+  - assets/images/
+  - assets/fonts/
 
   fonts:
     - family: Poppins

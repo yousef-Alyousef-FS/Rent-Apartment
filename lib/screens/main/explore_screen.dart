@@ -43,18 +43,15 @@ class _ExploreScreenState extends State<ExploreScreen> {
     super.dispose();
   }
 
-  // --- UPDATED: Client-side filtering logic with correct fields ---
   void _runFilters() {
     final apartmentProvider = Provider.of<ApartmentProvider>(context, listen: false);
     final allApartments = apartmentProvider.allApartments;
     final query = _searchController.text.toLowerCase();
     
     List<Apartment> results = allApartments.where((apartment) {
-      // 1. Search Query Filter
       final titleMatch = apartment.title.toLowerCase().contains(query);
       if (!titleMatch) return false;
 
-      // 2. Filters from the Bottom Sheet
       if (_activeFilters != null) {
         if (_activeFilters!.containsKey('min_price') && apartment.price < _activeFilters!['min_price']!) return false;
         if (_activeFilters!.containsKey('max_price') && apartment.price > _activeFilters!['max_price']!) return false;
@@ -186,7 +183,6 @@ class _FilterSheetState extends State<_FilterSheet> {
   RangeValues _priceRange = const RangeValues(100, 5000);
   final _governorateController = TextEditingController();
   final _cityController = TextEditingController();
-  // --- UPDATED: from bedrooms to rooms, removed bathrooms ---
   int _rooms = 0;
 
   void _handleApply() {
@@ -232,7 +228,6 @@ class _FilterSheetState extends State<_FilterSheet> {
           RangeSlider(values: _priceRange, min: 0, max: 5000, divisions: 100, labels: RangeLabels(_priceRange.start.round().toString(), _priceRange.end.round().toString()), onChanged: (v) => setState(() => _priceRange = v)),
           const SizedBox(height: 16),
           Text('Specifications', style: Theme.of(context).textTheme.titleLarge),
-          // --- UPDATED: Changed label, removed bathrooms counter ---
           _buildCounter('Min. Rooms', _rooms, (val) => setState(() => _rooms = val)),
           const SizedBox(height: 30),
           Row(
@@ -264,4 +259,5 @@ class _FilterSheetState extends State<_FilterSheet> {
         ],
       ),
     );
-  }}
+  }
+}

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:plproject/models/apartment.dart';
 import 'package:plproject/providers/user_provider.dart';
 import 'package:plproject/screens/apartments/apartment_details_screen.dart';
+import 'package:plproject/generated/app_localizations.dart';
 
 class ApartmentCard extends StatelessWidget {
   final Apartment apartment;
@@ -12,6 +13,7 @@ class ApartmentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final loc = AppLocalizations.of(context)!;
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 10.0),
       child: InkWell(
@@ -21,7 +23,7 @@ class ApartmentCard extends StatelessWidget {
           ));
         },
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start, // CORRECTED TYPO
           children: [
             Stack(
               children: [
@@ -57,8 +59,6 @@ class ApartmentCard extends StatelessWidget {
                 children: [
                   Text(apartment.title, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-
-                  // --- UPDATED: Displaying new location format ---
                   if (apartment.city != null && apartment.governorate != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8.0),
@@ -73,7 +73,6 @@ class ApartmentCard extends StatelessWidget {
                         ],
                       ),
                     ),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -81,7 +80,7 @@ class ApartmentCard extends StatelessWidget {
                         TextSpan(
                           children: [
                             TextSpan(text: '\$${apartment.price.toStringAsFixed(0)}', style: theme.textTheme.titleMedium?.copyWith(color: theme.primaryColor, fontWeight: FontWeight.bold)),
-                            TextSpan(text: ' / night', style: theme.textTheme.bodyMedium),
+                            TextSpan(text: loc.perNight, style: theme.textTheme.bodyMedium), // LOCALIZED
                           ],
                         ),
                       ),

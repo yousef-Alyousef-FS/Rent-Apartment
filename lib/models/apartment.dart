@@ -69,9 +69,6 @@ class Apartment
             'governorate': governorate,
             'number_of_rooms': rooms,
             'area': area
-            // 'image_urls' is usually handled separately via file uploads,
-            // so it's not included in the main JSON body.
-
         };
     }
 

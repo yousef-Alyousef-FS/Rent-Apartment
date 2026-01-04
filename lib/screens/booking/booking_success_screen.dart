@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:plproject/models/booking.dart';
+// --- CORRECTED: Use the correct path for generated localizations ---
+import 'package:plproject/generated/app_localizations.dart';
+import 'package:plproject/screens/booking/booking_detail_screen.dart';
 
 class BookingSuccessScreen extends StatelessWidget {
-  const BookingSuccessScreen({super.key});
+  final Booking booking;
+
+  const BookingSuccessScreen({super.key, required this.booking});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final loc = AppLocalizations.of(context)!;
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -25,35 +33,38 @@ class BookingSuccessScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
               Text(
-                'Booking Successful!',
+                loc.bookingSuccessful, // Localized text
                 textAlign: TextAlign.center,
                 style: theme.textTheme.displaySmall,
               ),
               const SizedBox(height: 16),
               Text(
-                'You have successfully booked your stay. You can view the details in your bookings list.',
+                loc.bookingSuccessMessage, // Localized text
                 textAlign: TextAlign.center,
                 style: theme.textTheme.titleMedium?.copyWith(color: Colors.grey[600]),
               ),
               const Spacer(),
               ElevatedButton(
                 onPressed: () {
-                  // TODO: Navigate to the booking details screen with the correct booking ID
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) => BookingDetailScreen(booking: booking),
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   backgroundColor: theme.colorScheme.primary,
                   foregroundColor: theme.colorScheme.onPrimary,
                 ),
-                child: const Text('View Booking Details'),
+                child: Text(loc.viewBookingDetails), // Localized text
               ),
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () {
-                  // Navigate back to home and remove all previous routes
                   Navigator.of(context).popUntil((route) => route.isFirst);
                 },
-                child: const Text('Back to Home'),
+                child: Text(loc.backToHome), // Localized text
               ),
             ],
           ),

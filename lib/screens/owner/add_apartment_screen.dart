@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:plproject/models/apartment.dart';
 import 'package:plproject/providers/apartment_provider.dart';
+import 'package:plproject/generated/app_localizations.dart'; // Import localizations
 
 class AddApartmentScreen extends StatefulWidget {
   const AddApartmentScreen({super.key});
@@ -45,11 +46,12 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
   }
 
   Future<void> _saveApartment() async {
+    final loc = AppLocalizations.of(context)!;
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     if (_selectedImages.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please add at least one image.'), backgroundColor: Colors.orange));
+          SnackBar(content: Text(loc.pleaseAddOneImage), backgroundColor: Colors.orange));
       return;
     }
 
@@ -77,10 +79,10 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
     if (mounted) {
       final theme = Theme.of(context);
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Apartment added successfully!'), backgroundColor: Colors.green));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.apartmentAddedSuccess), backgroundColor: Colors.green));
         Navigator.of(context).pop();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(apartmentProvider.errorMessage ?? 'Failed to add apartment.'), backgroundColor: theme.colorScheme.error));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(apartmentProvider.errorMessage ?? loc.failedToAddApartment), backgroundColor: theme.colorScheme.error));
       }
     }
 
@@ -105,42 +107,44 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final loc = AppLocalizations.of(context)!;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Add New Apartment')),
+      appBar: AppBar(title: Text(loc.addNewApartment)),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            _buildSectionHeader(theme, 'Basic Information'),
-            TextFormField(controller: _titleController, decoration: const InputDecoration(labelText: 'Title'), validator: (v) => v!.isEmpty ? 'Required' : null),
+            _buildSectionHeader(theme, loc.basicInformation),
+            TextFormField(controller: _titleController, decoration: InputDecoration(labelText: loc.title), validator: (v) => v!.isEmpty ? loc.required : null),
             const SizedBox(height: 16),
-            TextFormField(controller: _descriptionController, decoration: const InputDecoration(labelText: 'Description'), maxLines: 5, validator: (v) => v!.isEmpty ? 'Required' : null),
+            TextFormField(controller: _descriptionController, decoration: InputDecoration(labelText: loc.description), maxLines: 5, validator: (v) => v!.isEmpty ? loc.required : null),
             const SizedBox(height: 24),
-            _buildSectionHeader(theme, 'Location'),
-            TextFormField(controller: _governorateController, decoration: const InputDecoration(labelText: 'Governorate'), validator: (v) => v!.isEmpty ? 'Required' : null),
+            _buildSectionHeader(theme, loc.location),
+            TextFormField(controller: _governorateController, decoration: InputDecoration(labelText: loc.governorate), validator: (v) => v!.isEmpty ? loc.required : null),
             const SizedBox(height: 16),
-            TextFormField(controller: _cityController, decoration: const InputDecoration(labelText: 'City'), validator: (v) => v!.isEmpty ? 'Required' : null),
+            TextFormField(controller: _cityController, decoration: InputDecoration(labelText: loc.city), validator: (v) => v!.isEmpty ? loc.required : null),
             const SizedBox(height: 16),
-            TextFormField(controller: _addressController, decoration: const InputDecoration(labelText: 'Detailed Address'), validator: (v) => v!.isEmpty ? 'Required' : null),
+            TextFormField(controller: _addressController, decoration: InputDecoration(labelText: loc.detailedAddress), validator: (v) => v!.isEmpty ? loc.required : null),
             const SizedBox(height: 24),
-            _buildSectionHeader(theme, 'Specifications'),
+            _buildSectionHeader(theme, loc.specifications),
             Row(
               children: [
-                Expanded(child: TextFormField(controller: _priceController, decoration: const InputDecoration(labelText: 'Price / night'), keyboardType: TextInputType.number, validator: (v) => v!.isEmpty ? 'Required' : null)),
+                Expanded(child: TextFormField(controller: _priceController, decoration: InputDecoration(labelText: loc.pricePerNight), keyboardType: TextInputType.number, validator: (v) => v!.isEmpty ? loc.required : null)),
                 const SizedBox(width: 16),
-                Expanded(child: TextFormField(controller: _areaController, decoration: const InputDecoration(labelText: 'Area (sqm)'), keyboardType: TextInputType.number, validator: (v) => v!.isEmpty ? 'Required' : null)),
+                Expanded(child: TextFormField(controller: _areaController, decoration: InputDecoration(labelText: loc.areaSqm), keyboardType: TextInputType.number, validator: (v) => v!.isEmpty ? loc.required : null)),
               ],
             ),
             const SizedBox(height: 16),
-            TextFormField(controller: _roomsController, decoration: const InputDecoration(labelText: 'Number of Rooms'), keyboardType: TextInputType.number, validator: (v) => v!.isEmpty ? 'Required' : null),
+            TextFormField(controller: _roomsController, decoration: InputDecoration(labelText: loc.numberOfRooms), keyboardType: TextInputType.number, validator: (v) => v!.isEmpty ? loc.required : null),
             const SizedBox(height: 24),
-            _buildSectionHeader(theme, 'Photos'),
-            _buildImagePicker(theme),
+            _buildSectionHeader(theme, loc.photos),
+            _buildImagePicker(theme, loc),
           ],
         ),
       ),
-      bottomNavigationBar: _buildAddButton(),
+      bottomNavigationBar: _buildAddButton(loc),
     );
   }
 
@@ -151,41 +155,41 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
     );
   }
 
-  Widget _buildAddButton() {
+  Widget _buildAddButton(AppLocalizations loc) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: ElevatedButton(
         onPressed: _isLoading ? null : _saveApartment,
         child: _isLoading
             ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white))
-            : const Text('Add Apartment'),
+            : Text(loc.addApartment),
       ),
     );
   }
-  
-  Widget _buildImagePicker(ThemeData theme) {
+
+  Widget _buildImagePicker(ThemeData theme, AppLocalizations loc) {
     return Column(
       children: [
         SizedBox(
           height: 120,
           child: _selectedImages.isEmpty
-              ? _buildImagePickerPlaceholder(theme)
+              ? _buildImagePickerPlaceholder(theme, loc)
               : ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _selectedImages.length + 1,
-                  itemBuilder: (context, index) {
-                    if (index == _selectedImages.length) {
-                      return _buildAddMoreButton(theme);
-                    }
-                    return _buildImageThumbnail(index);
-                  },
-                ),
+            scrollDirection: Axis.horizontal,
+            itemCount: _selectedImages.length + 1,
+            itemBuilder: (context, index) {
+              if (index == _selectedImages.length) {
+                return _buildAddMoreButton(theme);
+              }
+              return _buildImageThumbnail(index);
+            },
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildImagePickerPlaceholder(ThemeData theme) {
+  Widget _buildImagePickerPlaceholder(ThemeData theme, AppLocalizations loc) {
     return InkWell(
       onTap: _pickImages,
       borderRadius: BorderRadius.circular(12),
@@ -197,7 +201,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
           children: [
             Icon(Icons.add_a_photo_outlined, size: 40, color: Colors.grey[600]),
             const SizedBox(height: 8),
-            const Text('Add Photos'),
+            Text(loc.addPhotos),
           ],
         ),
       ),

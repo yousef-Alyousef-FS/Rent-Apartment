@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:plproject/models/booking.dart';
 import 'package:plproject/providers/booking_provider.dart';
+import 'package:plproject/generated/app_localizations.dart';
 import 'package:plproject/screens/booking/edit_booking_screen.dart';
 import 'package:plproject/screens/booking/review_screen.dart';
 
@@ -13,32 +15,49 @@ class BookingsListScreen extends StatefulWidget {
 }
 
 class _BookingsListScreenState extends State<BookingsListScreen> {
+  int? _cancellingBookingId;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _fetchBookings();
+      _fetchBookings(forceRefresh: true);
     });
   }
 
-  Future<void> _fetchBookings() {
-    return Provider.of<BookingProvider>(context, listen: false).fetchUserBookings();
+  Future<void> _fetchBookings({bool forceRefresh = false}) {
+    return Provider.of<BookingProvider>(context, listen: false).fetchMyBookings(forceRefresh: forceRefresh);
   }
 
-  void _showCancelDialog(Booking booking) {
+  void _showCancelDialog(BuildContext context, Booking booking, AppLocalizations loc) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Cancel Booking'),
-        content: const Text('Are you sure you want to cancel this booking?'),
+        title: Text(loc.confirmCancellation),
+        content: Text(loc.areYouSureCancelBooking),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('No')),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(loc.cancel)),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(ctx).pop();
-              Provider.of<BookingProvider>(context, listen: false).cancelBooking(booking.id);
+              setState(() => _cancellingBookingId = booking.id);
+
+              final success = await Provider.of<BookingProvider>(context, listen: false).cancelBooking(booking.id);
+
+              if (mounted) {
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(loc.cancellationSuccess), backgroundColor: Colors.green),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(loc.cancellationError), backgroundColor: Theme.of(context).colorScheme.error),
+                  );
+                }
+                setState(() => _cancellingBookingId = null);
+              }
             },
-            child: Text('Yes, Cancel', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            child: Text(loc.yesCancel, style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ),
         ],
       ),
@@ -47,33 +66,35 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return DefaultTabController(
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('My Bookings'),
-          bottom: const TabBar(tabs: [Tab(text: 'Upcoming'), Tab(text: 'Completed'), Tab(text: 'Cancelled')]),
+          title: Text(loc.myBookings),
+          bottom: TabBar(tabs: [Tab(text: loc.upcoming), Tab(text: loc.completed), Tab(text: loc.cancelled)]),
         ),
         body: RefreshIndicator(
-          onRefresh: _fetchBookings,
+          onRefresh: () => _fetchBookings(forceRefresh: true),
           child: Consumer<BookingProvider>(
             builder: (context, provider, child) {
-              if (provider.status == BookingStatusState.Loading) {
+              if (provider.status == BookingStatusState.Loading && provider.myBookings.isEmpty) {
                 return const Center(child: CircularProgressIndicator());
               }
-              if (provider.status == BookingStatusState.Error) {
-                return Center(child: Text(provider.errorMessage ?? 'An error occurred.'));
+              if (provider.status == BookingStatusState.Error && provider.myBookings.isEmpty) {
+                return Center(child: Text(loc.errorOccurred(provider.errorMessage ?? '...')));
               }
 
-              final upcoming = provider.bookings.where((b) => b.status == 'confirmed').toList();
-              final completed = provider.bookings.where((b) => b.status == 'completed').toList();
-              final cancelled = provider.bookings.where((b) => b.status == 'cancelled').toList();
+              final upcoming = provider.myBookings.where((b) => b.status == 'confirmed').toList();
+              final completed = provider.myBookings.where((b) => b.status == 'completed').toList();
+              final cancelled = provider.myBookings.where((b) => b.status == 'cancelled').toList();
 
               return TabBarView(
                 children: [
-                  _buildBookingsList(upcoming, 'You have no upcoming bookings.', 'upcoming'),
-                  _buildBookingsList(completed, 'You have no completed bookings.', 'completed'),
-                  _buildBookingsList(cancelled, 'You have no cancelled bookings.', null),
+                  _buildBookingsList(upcoming, loc.noUpcomingBookings, 'upcoming'),
+                  _buildBookingsList(completed, loc.noCompletedBookings, 'completed'),
+                  _buildBookingsList(cancelled, loc.noCancelledBookings, null),
                 ],
               );
             },
@@ -97,6 +118,10 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
   }
 
   Widget _buildBookingCard(Booking booking, String? actionsType) {
+    final loc = AppLocalizations.of(context)!;
+    // --- CORRECTED: Use the reliable way to get the current locale from the context ---
+    final dateFormat = DateFormat('yMd', Localizations.localeOf(context).toLanguageTag());
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Padding(
@@ -111,9 +136,9 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
                     booking.apartment.imageUrls.isNotEmpty ? booking.apartment.imageUrls[0] : '',
                     width: 80, height: 80, fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(
-                      width: 80, height: 80, 
+                      width: 80, height: 80,
                       color: Colors.grey[200],
-                      child: const Icon(Icons.apartment, size: 40, color: Colors.grey)
+                      child: const Icon(Icons.apartment, size: 40, color: Colors.grey),
                     ),
                   ),
                 ),
@@ -124,9 +149,9 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
                     children: [
                       Text(booking.apartment.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       const SizedBox(height: 4),
-                      Text('Dates: ${booking.checkInDate.toLocal().toString().split(' ')[0]} - ${booking.checkOutDate.toLocal().toString().split(' ')[0]}', style: TextStyle(color: Colors.grey[600])),
+                      Text('${loc.dates}: ${dateFormat.format(booking.checkInDate)} - ${dateFormat.format(booking.checkOutDate)}', style: TextStyle(color: Colors.grey[600])),
                       const SizedBox(height: 4),
-                      Text('Total: \$${booking.totalPrice.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text('${loc.total}: \$${booking.totalPrice.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
@@ -135,7 +160,7 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
             if (actionsType != null)
               ButtonBar(
                 alignment: MainAxisAlignment.end,
-                children: _buildActionButtons(context, booking, actionsType),
+                children: _buildActionButtons(context, booking, actionsType, loc),
               ),
           ],
         ),
@@ -143,11 +168,24 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
     );
   }
 
-  List<Widget> _buildActionButtons(BuildContext context, Booking booking, String actionsType) {
+  List<Widget> _buildActionButtons(BuildContext context, Booking booking, String actionsType, AppLocalizations loc) {
     if (actionsType == 'upcoming') {
       return [
-        TextButton(onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => EditBookingScreen(booking: booking))), child: const Text('Edit Booking')),
-        TextButton(onPressed: () => _showCancelDialog(booking), child: Text('Cancel', style: TextStyle(color: Theme.of(context).colorScheme.error))),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => EditBookingScreen(booking: booking)));
+          },
+          child: Text(loc.editBooking),
+        ),
+        _cancellingBookingId == booking.id
+            ? const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12.0),
+                child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+              )
+            : TextButton(
+                onPressed: () => _showCancelDialog(context, booking, loc),
+                child: Text(loc.cancel, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              ),
       ];
     } else if (actionsType == 'completed') {
       return [
@@ -155,7 +193,7 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
           onPressed: () {
             Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => ReviewScreen(apartmentId: booking.apartment.id)));
           },
-          child: const Text('Add Review'),
+          child: Text(loc.addReview),
         ),
       ];
     }

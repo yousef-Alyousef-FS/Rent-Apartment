@@ -5,18 +5,20 @@ import 'package:plproject/services/APIs/user_api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:plproject/models/user.dart';
 
-enum UserStatus { Checking, Authenticated, Unauthenticated, Loading, Error }
+enum UserStatus {
+  Checking, Authenticated, Unauthenticated, Loading, Error
+}
 
 class UserProvider with ChangeNotifier {
   final UserApiService _apiService = UserApiService();
   static const String _tokenKey = 'auth_token';
-  static const String _favoritesKey = 'favorite_ids';
 
   User? _user;
   String? _token;
   UserStatus _status = UserStatus.Checking;
   String? _errorMessage;
 
+  // --- UPDATED: To sync with the server ---
   List<int> _favoriteApartmentIds = [];
   List<int> get favoriteApartmentIds => _favoriteApartmentIds;
 
@@ -30,39 +32,52 @@ class UserProvider with ChangeNotifier {
     tryAutoLogin();
   }
 
-  Future<void> _loadFavorites() async
-  {
-    final prefs = await SharedPreferences.getInstance();
-    final favoriteIdsAsString = prefs.getStringList(_favoritesKey) ?? [];
-    _favoriteApartmentIds = favoriteIdsAsString.map((id) => int.parse(id)).toList();
-    notifyListeners();
+  // --- FAVORITES LOGIC (SERVER-SIDE) ---
+
+  Future<void> _fetchFavorites() async {
+    if (_token == null) return;
+    try {
+      _favoriteApartmentIds = await _apiService.getFavorites(_token!);
+      notifyListeners();
+    } catch (e) {
+      print('Failed to fetch favorites: $e');
+    }
   }
 
-  Future<void> _saveFavorites() async
-  {
-    final prefs = await SharedPreferences.getInstance();
-    final favoriteIdsAsString = _favoriteApartmentIds.map((id) => id.toString()).toList();
-    await prefs.setStringList(_favoritesKey, favoriteIdsAsString);
-  }
-
-  bool isFavorite(int apartmentId)
-  {
+  bool isFavorite(int apartmentId) {
     return _favoriteApartmentIds.contains(apartmentId);
   }
 
-  void toggleFavorite(int apartmentId)
-  {
-    if (isFavorite(apartmentId))
-    {
+  Future<void> toggleFavorite(int apartmentId) async {
+    if (_token == null) return;
+
+    final isCurrentlyFavorite = isFavorite(apartmentId);
+    // Optimistic UI update
+    if (isCurrentlyFavorite) {
       _favoriteApartmentIds.remove(apartmentId);
-    }
-    else
-    {
+    } else {
       _favoriteApartmentIds.add(apartmentId);
     }
-    _saveFavorites();
     notifyListeners();
+
+    try {
+      if (isCurrentlyFavorite) {
+        await _apiService.removeFavorite(_token!, apartmentId);
+      } else {
+        await _apiService.addFavorite(_token!, apartmentId);
+      }
+    } catch (e) {
+      // Revert on error
+      if (isCurrentlyFavorite) {
+        _favoriteApartmentIds.add(apartmentId);
+      } else {
+        _favoriteApartmentIds.remove(apartmentId);
+      }
+      notifyListeners();
+    }
   }
+
+  // --- AUTH LOGIC ---
 
   Future<void> tryAutoLogin() async {
     _status = UserStatus.Checking;
@@ -83,7 +98,7 @@ class UserProvider with ChangeNotifier {
       _user = userProfile;
       _token = storedToken;
       _status = UserStatus.Authenticated;
-      await _loadFavorites();
+      await _fetchFavorites(); // Fetch favorites on login
     } catch (e) {
       await logout();
     }
@@ -107,7 +122,7 @@ class UserProvider with ChangeNotifier {
         await _saveToken(_token!);
       }
       _status = UserStatus.Authenticated;
-      await _loadFavorites();
+      await _fetchFavorites(); // Fetch favorites on login
       notifyListeners();
       return true;
     } catch (e) {
@@ -131,16 +146,14 @@ class UserProvider with ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
     try {
-      // The apiService now handles the multipart request
       await _apiService.register(
-        phone: phone,
-        password: password,
-        firstName: firstName,
-        lastName: lastName,
-        dateOfBirth: dateOfBirth,
-        personalImage: personalImage,
-        idCardImage: idCardImage,
-      );
+          phone: phone,
+          password: password,
+          firstName: firstName,
+          lastName: lastName,
+          dateOfBirth: dateOfBirth,
+          personalImage: personalImage,
+          idCardImage: idCardImage);
       _status = UserStatus.Unauthenticated;
       notifyListeners();
       return true;
@@ -157,25 +170,19 @@ class UserProvider with ChangeNotifier {
     _status = UserStatus.Loading;
     _errorMessage = null;
     notifyListeners();
-    try
-    {
+    try {
       final isAvailable = await _apiService.checkPhoneAvailability(phone);
-      if (isAvailable)
-      {
+      if (isAvailable) {
         _status = UserStatus.Unauthenticated;
         notifyListeners();
         return true;
-      }
-      else
-      {
+      } else {
         _status = UserStatus.Error;
         _errorMessage = "This phone number is already registered.";
         notifyListeners();
         return false;
       }
-    }
-    catch (e)
-    {
+    } catch (e) {
       _status = UserStatus.Error;
       _errorMessage = e.toString();
       notifyListeners();
@@ -183,28 +190,20 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-
-  // --- NEW: Function to update user profile ---
   Future<bool> updateUserProfile({
     String? firstName,
     String? lastName,
     String? dateOfBirth,
     XFile? personalImage,
-  }) async {
+  }) async
+  {
     if (_token == null) return false;
     _status = UserStatus.Loading;
     _errorMessage = null;
     notifyListeners();
     try {
-      final updatedUser = await _apiService.updateUserProfile(
-        _token!,
-        firstName: firstName,
-        lastName: lastName,
-        dateOfBirth: dateOfBirth,
-        personalImage: personalImage,
-      );
-      // Update the local user object with the new data from the server
-      _user = updatedUser.copyWith(token: _token); // Keep the existing token
+      final updatedUser = await _apiService.updateUserProfile(_token!, firstName: firstName, lastName: lastName, dateOfBirth: dateOfBirth, personalImage: personalImage);
+      _user = updatedUser.copyWith(token: _token);
       _status = UserStatus.Authenticated;
       notifyListeners();
       return true;
@@ -216,30 +215,59 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-  Future<void> _saveToken(String token) async
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String newPasswordConfirmation,
+  }) async
   {
+    if (_token == null) return false;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      await _apiService.changePassword(_token!, currentPassword: currentPassword, newPassword: newPassword, newPasswordConfirmation: newPasswordConfirmation);
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> requestPasswordReset(String phone) async {
+    _status = UserStatus.Loading;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      await _apiService.requestPasswordReset(phone);
+      _status = UserStatus.Unauthenticated;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _status = UserStatus.Error;
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<void> _saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
   }
 
-  Future<void> logout() async
-  {
+  Future<void> logout() async {
+    try {
+      if (_token != null) await _apiService.logout(_token!);
+    } catch (_) {
+      // Ignore errors on logout
+    }
     _user = null;
     _token = null;
     _status = UserStatus.Unauthenticated;
-    _favoriteApartmentIds = [];
+    _favoriteApartmentIds = []; // Clear favorites on logout
     final prefs = await SharedPreferences.getInstance();
-    // Try to inform the server about the logout, but don't block the user if it fails.
-    try
-    {
-      if (_token != null) await _apiService.logout(_token!);
-    }
-    catch (_)
-    {
-      // Ignore errors on logout, the user should be logged out locally regardless.
-    }
     await prefs.remove(_tokenKey);
-    await prefs.remove(_favoritesKey);
     notifyListeners();
   }
 }

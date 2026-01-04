@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:plproject/generated/app_localizations.dart'; // Import localizations
 import 'package:plproject/providers/apartment_provider.dart';
-import 'package:plproject/providers/user_provider.dart'; // Import UserProvider
+import 'package:plproject/providers/user_provider.dart';
 import 'package:plproject/screens/auth/welcome_auth_screen.dart';
 import '../../widgets/apartment_card.dart';
 
@@ -17,21 +18,22 @@ class _ApartmentsState extends State<Apartments> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Use the correct provider method to fetch data for this screen
       Provider.of<ApartmentProvider>(context, listen: false).fetchApartments();
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!; // Localization instance
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Available Apartments"),
+        title: Text(loc.availableApartments),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
-            onPressed: () => _showLogoutDialog(context),
+            tooltip: loc.logout,
+            onPressed: () => _showLogoutDialog(context, loc),
           ),
         ],
       ),
@@ -41,11 +43,11 @@ class _ApartmentsState extends State<Apartments> {
             case ApartmentStatus.Loading:
               return const Center(child: CircularProgressIndicator());
             case ApartmentStatus.Error:
-              return Center(child: Text('Error: ${provider.errorMessage}'));
+              // Using the error message with a placeholder
+              return Center(child: Text(loc.errorOccurred(provider.errorMessage ?? 'Unknown error')));
             case ApartmentStatus.Loaded:
-              // --- CORRECTED: Use `allApartments` instead of `apartments` ---
               if (provider.allApartments.isEmpty) {
-                return const Center(child: Text('No apartments available.'));
+                return Center(child: Text(loc.noApartmentsAvailable));
               }
               return ListView.builder(
                 itemCount: provider.allApartments.length,
@@ -55,32 +57,28 @@ class _ApartmentsState extends State<Apartments> {
                 },
               );
             default: // Idle
-              return const Center(child: Text('Welcome! Loading apartments...'));
+              return Center(child: Text(loc.loadingApartments));
           }
         },
       ),
     );
   }
 
-  // --- CORRECTED: Logout logic now uses UserProvider ---
-  void _showLogoutDialog(BuildContext context) {
+  void _showLogoutDialog(BuildContext context, AppLocalizations loc) {
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Confirm Logout'),
-          content: const Text('Are you sure you want to log out?'),
+          title: Text(loc.confirmLogout),
+          content: Text(loc.areYouSureLogout),
           actions: <Widget>[
-            TextButton(child: const Text('Cancel'), onPressed: () => Navigator.of(dialogContext).pop()),
+            TextButton(child: Text(loc.cancel), onPressed: () => Navigator.of(dialogContext).pop()),
             TextButton(
-              child: const Text('Logout'),
+              child: Text(loc.logout, style: TextStyle(color: Theme.of(context).colorScheme.error)),
               onPressed: () async {
-                // Use the provider to handle logout logic centrally
                 await Provider.of<UserProvider>(context, listen: false).logout();
-                
                 if (mounted) {
-                  // Navigate to the welcome screen after logout
-                  Navigator.of(dialogContext).pop(); // Close the dialog
+                  Navigator.of(dialogContext).pop();
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (context) => const WelcomeAuthScreen()),
                     (route) => false,

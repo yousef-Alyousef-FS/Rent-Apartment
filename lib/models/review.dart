@@ -1,52 +1,32 @@
+import 'package:plproject/models/apartment.dart';
 import 'package:plproject/models/user.dart';
 
 class Review {
   final int id;
-  final int rating; // e.g., 1 to 5
+  final int rating;
   final String comment;
-  final DateTime createdAt;
   final User user;
+  final Apartment apartment;
+  final DateTime createdAt;
 
   Review({
     required this.id,
     required this.rating,
     required this.comment,
-    required this.createdAt,
     required this.user,
+    required this.apartment,
+    required this.createdAt,
   });
 
   factory Review.fromJson(Map<String, dynamic> json) {
     return Review(
-      id: json['id'] as int,
-      rating: json['rating'] as int,
-      comment: json['comment'] as String,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      user: User.fromJson(json['user'] as Map<String, dynamic>),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'rating': rating,
-      'comment': comment,
-      'user_id': user.id,
-    };
-  }
-
-  Review copyWith({
-    int? id,
-    int? rating,
-    String? comment,
-    DateTime? createdAt,
-    User? user,
-  }) {
-    return Review(
-      id: id ?? this.id,
-      rating: rating ?? this.rating,
-      comment: comment ?? this.comment,
-      createdAt: createdAt ?? this.createdAt,
-      user: user ?? this.user,
+      id: json['id'],
+      rating: json['rating'],
+      comment: json['comment'],
+      // Assuming the backend nests user and apartment details within the review
+      user: User.fromJson(json['user']),
+      apartment: Apartment.fromJson(json['apartment']),
+      createdAt: DateTime.parse(json['created_at']),
     );
   }
 }

@@ -3,79 +3,40 @@ import 'package:provider/provider.dart';
 import 'package:plproject/models/user.dart';
 import 'package:plproject/providers/user_provider.dart';
 import 'package:plproject/screens/main/settings_screen.dart';
-import 'package:plproject/widgets/menu_list_item.dart'; // Import the new widget
+// --- CORRECTED: Use the correct screen we already built ---
+import 'package:plproject/screens/booking/bookings_list_screen.dart'; 
+import 'package:plproject/screens/profile/my_reviews_screen.dart';
+import 'package:plproject/screens/profile/edit_profile_screen.dart';
+import 'package:plproject/screens/auth/welcome_auth_screen.dart';
+import 'package:plproject/widgets/menu_list_item.dart'; 
+import 'package:plproject/generated/app_localizations.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<UserProvider>(
-      builder: (context, userProvider, child) {
-        final user = userProvider.user;
-
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('My Profile'),
-          ),
-          body: ListView(
-            children: [
-              _buildProfileHeader(context, user),
-              const SizedBox(height: 24),
-              MenuListItem(
-                icon: Icons.bookmark_border,
-                title: 'My Bookings',
-                onTap: () { /* TODO */ },
-              ),
-              MenuListItem(
-                icon: Icons.favorite_border,
-                title: 'Favorites',
-                onTap: () { /* TODO */ },
-              ),
-              MenuListItem(
-                icon: Icons.reviews_outlined,
-                title: 'My Reviews',
-                onTap: () { /* TODO */ },
-              ),
-              MenuListItem(
-                icon: Icons.settings_outlined,
-                title: 'Settings',
-                onTap: () {
-                   Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const SettingsScreen()));
-                },
-              ),
-              const Divider(height: 32),
-              if (userProvider.isLoggedIn)
-                MenuListItem(
-                  icon: Icons.logout,
-                  title: 'Logout',
-                  color: Colors.red[700],
-                  onTap: () => _showLogoutDialog(context, userProvider),
-                ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _showLogoutDialog(BuildContext context, UserProvider userProvider) {
+  void _showLogoutDialog(BuildContext context, UserProvider userProvider, AppLocalizations loc) {
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Confirm Logout'),
-          content: const Text('Are you sure you want to log out?'),
+          title: Text(loc.confirmLogout),
+          content: Text(loc.areYouSureLogout),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text(loc.cancel),
               onPressed: () => Navigator.of(dialogContext).pop(),
             ),
             TextButton(
-              child: const Text('Logout'),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                userProvider.logout();
+              child: Text(loc.logout, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              onPressed: () async {
+                Navigator.of(dialogContext).pop(); 
+                await userProvider.logout();
+                if (context.mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => const WelcomeAuthScreen()),
+                    (route) => false,
+                  );
+                }
               },
             ),
           ],
@@ -84,16 +45,79 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // This widget remains local as it's unique to this screen
-  Widget _buildProfileHeader(BuildContext context, User? user) {
+  void _showFeatureNotAvailable(BuildContext context, AppLocalizations loc) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(loc.featureNotAvailable)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+    final user = userProvider.user;
+    final loc = AppLocalizations.of(context)!;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(loc.myProfile),
+      ),
+      body: ListView(
+        children: [
+          _buildProfileHeader(context, user, loc),
+          const SizedBox(height: 24),
+          MenuListItem(
+            icon: Icons.bookmark_border,
+            title: loc.myBookings,
+            onTap: () {
+              // --- CORRECTED: Navigate to the correct screen ---
+              Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const BookingsListScreen()));
+            },
+          ),
+          MenuListItem(
+            icon: Icons.favorite_border,
+            title: loc.favorites,
+            onTap: () => _showFeatureNotAvailable(context, loc),
+          ),
+          MenuListItem(
+            icon: Icons.reviews_outlined,
+            title: loc.myReviews,
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const MyReviewsScreen()));
+            },
+          ),
+          MenuListItem(
+            icon: Icons.settings_outlined,
+            title: loc.settings,
+            onTap: () {
+               Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const SettingsScreen()));
+            },
+          ),
+          const Divider(height: 32),
+          if (userProvider.isLoggedIn)
+            MenuListItem(
+              icon: Icons.logout,
+              title: loc.logout,
+              color: Colors.red[700],
+              onTap: () => _showLogoutDialog(context, userProvider, loc),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileHeader(BuildContext context, User? user, AppLocalizations loc) {
     final theme = Theme.of(context);
     final String displayName = user?.firstName != null
         ? '${user!.firstName} ${user.lastName ?? ''}'.trim()
-        : 'Guest';
+        : loc.guest;
     final String? imageUrl = user?.profileImageUrl;
 
     return InkWell(
-      onTap: () { /* TODO: Navigate to Edit Profile only if logged in */ },
+      onTap: () {
+        if (user != null) {
+          Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => const EditProfileScreen()));
+        }
+      },
       child: Container(
         padding: const EdgeInsets.all(24.0),
         child: Row(
@@ -115,7 +139,7 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Text('View and edit profile', style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600])),
+                        Text(loc.viewAndEditProfile, style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600])),
                         const SizedBox(width: 4),
                         Icon(Icons.arrow_forward_ios, size: 12, color: Colors.grey[600]),
                       ],
@@ -129,6 +153,4 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
-
-  // _buildProfileMenuItem has been removed
 }

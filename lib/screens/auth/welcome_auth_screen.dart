@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:plproject/generated/app_localizations.dart'; // Import localizations
 import 'package:plproject/screens/auth/login.dart';
 import 'package:plproject/screens/auth/register.dart';
-import 'package:plproject/theme/app_theme.dart';
 
 class WelcomeAuthScreen extends StatelessWidget {
   const WelcomeAuthScreen({super.key});
@@ -9,6 +9,8 @@ class WelcomeAuthScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final loc = AppLocalizations.of(context)!; // Localization instance
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -21,13 +23,13 @@ class WelcomeAuthScreen extends StatelessWidget {
               Image.asset("assets/images/logo.png", height: 180),
               const SizedBox(height: 20),
               Text(
-                'Welcome to RentalApp',
+                loc.welcomeToRentalApp,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.displayMedium,
               ),
               const SizedBox(height: 10),
               Text(
-                'Find your next home with ease.',
+                loc.findYourNextHome,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.titleMedium?.copyWith(color: Colors.grey[600]),
               ),
@@ -42,7 +44,7 @@ class WelcomeAuthScreen extends StatelessWidget {
                   foregroundColor: theme.colorScheme.onPrimary,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                 ),
-                child: const Text('Create Account', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                child: Text(loc.createAccount, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ),
               const SizedBox(height: 16),
               OutlinedButton(
@@ -55,7 +57,7 @@ class WelcomeAuthScreen extends StatelessWidget {
                   foregroundColor: theme.colorScheme.primary,
                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                 ),
-                child: const Text('Login', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                child: Text(loc.login, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ),
                const SizedBox(height: 40),
             ],

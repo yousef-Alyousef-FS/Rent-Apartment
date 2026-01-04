@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:plproject/models/booking.dart';
 import 'package:plproject/providers/booking_provider.dart';
+import 'package:plproject/generated/app_localizations.dart';
 
 class ManageBookingScreen extends StatefulWidget {
   final Booking booking;
@@ -12,31 +14,44 @@ class ManageBookingScreen extends StatefulWidget {
 }
 
 class _ManageBookingScreenState extends State<ManageBookingScreen> {
-  bool _isLoading = false;
+  bool _isApproving = false;
+  bool _isRejecting = false;
 
   Future<void> _approve() async {
-    setState(() { _isLoading = true; });
+    setState(() => _isApproving = true);
     final provider = Provider.of<BookingProvider>(context, listen: false);
     final success = await provider.approveBooking(widget.booking.id);
-    if (mounted && success) {
-      Navigator.of(context).pop();
-    }
-    // TODO: Handle error state
     if (mounted) {
-      setState(() { _isLoading = false; });
+      if (success) {
+        Navigator.of(context).pop();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(provider.errorMessage ?? AppLocalizations.of(context)!.actionFailed),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+      setState(() => _isApproving = false);
     }
   }
 
   Future<void> _reject() async {
-    setState(() { _isLoading = true; });
+    setState(() => _isRejecting = true);
     final provider = Provider.of<BookingProvider>(context, listen: false);
     final success = await provider.rejectBooking(widget.booking.id);
-    if (mounted && success) {
-      Navigator.of(context).pop();
-    }
-    // TODO: Handle error state
-     if (mounted) {
-      setState(() { _isLoading = false; });
+    if (mounted) {
+      if (success) {
+        Navigator.of(context).pop();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(provider.errorMessage ?? AppLocalizations.of(context)!.actionFailed),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+      setState(() => _isRejecting = false);
     }
   }
 
@@ -44,16 +59,17 @@ class _ManageBookingScreenState extends State<ManageBookingScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final booking = widget.booking;
+    final loc = AppLocalizations.of(context)!;
+    final dateFormat = DateFormat('yMd', loc.localeName);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Manage Booking Request'),
+        title: Text(loc.manageBookingRequest),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          // Renter Information
-          _buildSectionHeader(theme, 'Renter Information'),
+          _buildSectionHeader(theme, loc.renterInformation),
           Card(
             child: ListTile(
               leading: CircleAvatar(
@@ -61,20 +77,19 @@ class _ManageBookingScreenState extends State<ManageBookingScreen> {
                 child: booking.user.profileImageUrl == null ? const Icon(Icons.person) : null,
               ),
               title: Text('${booking.user.firstName} ${booking.user.lastName}'),
-              subtitle: const Text('Joined: Jan 2024'), // Mock data
+              // --- CORRECTED: Removed the non-existent 'joined' date and showing phone instead ---
+              subtitle: Text(booking.user.phone),
             ),
           ),
           const SizedBox(height: 24),
-
-          // Booking Details
-          _buildSectionHeader(theme, 'Booking Details'),
-          _buildDetailRow(theme, Icons.apartment_outlined, 'Apartment', booking.apartment.title),
-          _buildDetailRow(theme, Icons.calendar_today_outlined, 'Dates', '${booking.checkInDate.toLocal().toString().split(' ')[0]} - ${booking.checkOutDate.toLocal().toString().split(' ')[0]}'),
-          _buildDetailRow(theme, Icons.night_shelter_outlined, 'Nights', booking.checkOutDate.difference(booking.checkInDate).inDays.toString()),
-          _buildDetailRow(theme, Icons.attach_money_outlined, 'Total Payout', '\$${booking.totalPrice.toStringAsFixed(2)}'),
+          _buildSectionHeader(theme, loc.bookingDetails),
+          _buildDetailRow(theme, Icons.apartment_outlined, loc.apartment, booking.apartment.title),
+          _buildDetailRow(theme, Icons.calendar_today_outlined, loc.dates, '${dateFormat.format(booking.checkInDate)} - ${dateFormat.format(booking.checkOutDate)}'),
+          _buildDetailRow(theme, Icons.night_shelter_outlined, loc.nights(booking.checkOutDate.difference(booking.checkInDate).inDays), booking.checkOutDate.difference(booking.checkInDate).inDays.toString()),
+          _buildDetailRow(theme, Icons.attach_money_outlined, loc.totalPayout, '\$${booking.totalPrice.toStringAsFixed(2)}'),
         ],
       ),
-      bottomNavigationBar: _buildActionButtons(theme),
+      bottomNavigationBar: _buildActionButtons(theme, loc),
     );
   }
 
@@ -100,32 +115,36 @@ class _ManageBookingScreenState extends State<ManageBookingScreen> {
     );
   }
 
-  Widget _buildActionButtons(ThemeData theme) {
+  Widget _buildActionButtons(ThemeData theme, AppLocalizations loc) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
         children: [
           Expanded(
             child: OutlinedButton(
-              onPressed: _isLoading ? null : _reject,
+              onPressed: _isApproving || _isRejecting ? null : _reject,
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(0, 50),
                 foregroundColor: Colors.red[700],
                 side: BorderSide(color: Colors.red[700]!),
               ),
-              child: const Text('Reject'),
+              child: _isRejecting
+                  ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator())
+                  : Text(loc.reject),
             ),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: ElevatedButton(
-              onPressed: _isLoading ? null : _approve,
+              onPressed: _isApproving || _isRejecting ? null : _approve,
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(0, 50),
                 backgroundColor: theme.colorScheme.primary,
                 foregroundColor: theme.colorScheme.onPrimary,
               ),
-              child: const Text('Approve'),
+              child: _isApproving
+                  ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white))
+                  : Text(loc.approve),
             ),
           ),
         ],

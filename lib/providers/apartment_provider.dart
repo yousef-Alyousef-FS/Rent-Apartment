@@ -25,16 +25,24 @@ class ApartmentProvider with ChangeNotifier {
 
   void update(UserProvider userProvider) {
     _userProvider = userProvider;
+    if (_userProvider?.isLoggedIn == true) {
+      fetchApartments();
+      fetchFeaturedApartments();
+    }
   }
 
   String? get _token => _userProvider?.token;
 
-  Future<void> fetchApartments() async {
+  Future<void> fetchApartments({Map<String, String>? filters}) async {
     if (_token == null) return;
     _status = ApartmentStatus.Loading;
     notifyListeners();
     try {
-      _allApartments = await _apiService.getApartments(_token!);
+      if (filters != null && filters.isNotEmpty) {
+        _allApartments = await _apiService.searchApartments(_token!, filters: filters);
+      } else {
+        _allApartments = await _apiService.getAllApartments(_token!);
+      }
       _status = ApartmentStatus.Loaded;
     } catch (e) {
       _status = ApartmentStatus.Error;
@@ -46,7 +54,7 @@ class ApartmentProvider with ChangeNotifier {
   Future<void> fetchFeaturedApartments() async {
     if (_token == null) return;
     try {
-      final all = await _apiService.getApartments(_token!);
+      final all = await _apiService.getAllApartments(_token!);
       _featuredApartments = all.take(5).toList();
     } catch (e) {
       print('Failed to fetch featured apartments: $e');
@@ -55,10 +63,11 @@ class ApartmentProvider with ChangeNotifier {
   }
 
   Future<void> fetchMyApartments() async {
-    if (_token == null) return;
+    if (_token == null || _userProvider?.user == null) return;
     _status = ApartmentStatus.Loading;
     notifyListeners();
     try {
+      // CORRECTED: The backend now has a dedicated endpoint for this
       _myApartments = await _apiService.getMyApartments(_token!);
       _status = ApartmentStatus.Loaded;
     } catch (e) {
@@ -68,13 +77,24 @@ class ApartmentProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // --- UPDATED: To handle images ---
   Future<bool> addApartment(Apartment apartment, List<XFile> images) async {
     if (_token == null) return false;
     _status = ApartmentStatus.Loading;
     notifyListeners();
     try {
-      final newApartment = await _apiService.addApartment(apartment, images, _token!);
+      final apartmentData = {
+        'title': apartment.title,
+        'address': apartment.address!,
+        'description': apartment.description ?? '',
+        'city': apartment.city!,
+        'governorate': apartment.governorate!,
+        'price': apartment.price.toString(),
+        'number_of_rooms': apartment.rooms.toString(),
+        'area': apartment.area.toString(),
+        'is_rented': (apartment.isRented ?? false).toString(),
+      };
+
+      final newApartment = await _apiService.createApartment(apartmentData, images, _token!);
       _myApartments.insert(0, newApartment);
       _allApartments.insert(0, newApartment);
       _status = ApartmentStatus.Loaded;
@@ -88,20 +108,35 @@ class ApartmentProvider with ChangeNotifier {
     }
   }
 
-  // --- UPDATED: To handle image updates ---
-  Future<bool> updateApartment(Apartment apartment, {List<XFile>? newImages, List<String>? deletedImageUrls}) async {
+  // --- SIMPLIFIED: This function now ONLY updates textual data ---
+  Future<bool> updateApartment(Apartment apartment) async {
     if (_token == null) return false;
     _status = ApartmentStatus.Loading;
     notifyListeners();
     try {
-      final updatedApartment = await _apiService.updateApartment(apartment, _token!, newImages: newImages, deletedImageUrls: deletedImageUrls);
+      final detailsToUpdate = {
+        'title': apartment.title,
+        'address': apartment.address,
+        'description': apartment.description,
+        'city': apartment.city,
+        'governorate': apartment.governorate,
+        'price': apartment.price.toString(),
+        'number_of_rooms': apartment.rooms.toString(),
+        'area': apartment.area.toString(),
+        'is_rented': apartment.isRented.toString(),
+      };
+      // Remove nulls so we only send updated values
+      detailsToUpdate.removeWhere((key, value) => value == null);
 
+      final updatedApartment = await _apiService.updateApartmentDetails(apartment.id, _token!, detailsToUpdate);
+
+      // Refresh data locally
       final allIndex = _allApartments.indexWhere((a) => a.id == updatedApartment.id);
       if (allIndex != -1) _allApartments[allIndex] = updatedApartment;
 
       final myIndex = _myApartments.indexWhere((a) => a.id == updatedApartment.id);
       if (myIndex != -1) _myApartments[myIndex] = updatedApartment;
-
+      
       _status = ApartmentStatus.Loaded;
       notifyListeners();
       return true;
@@ -113,7 +148,6 @@ class ApartmentProvider with ChangeNotifier {
     }
   }
 
-  // --- NEW: Function to delete an apartment ---
   Future<bool> deleteApartment(int apartmentId) async {
     if (_token == null) return false;
     _status = ApartmentStatus.Loading;

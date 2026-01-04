@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:plproject/generated/app_localizations.dart'; // Import localizations
 import 'package:plproject/providers/user_provider.dart';
 import 'package:plproject/screens/auth/auth_gate.dart';
 import 'package:plproject/screens/auth/forgot_password_screen.dart';
 import 'package:plproject/screens/auth/register.dart';
 import 'package:plproject/utils/validators.dart';
-// import 'package:plproject/widgets/CTextField.dart'; // No longer needed
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,6 +19,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
+
+  // --- NEW: State for password visibility ---
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -47,6 +50,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final loc = AppLocalizations.of(context)!;
+
     return Scaffold(
       body: Consumer<UserProvider>(
         builder: (context, userProvider, child) {
@@ -55,31 +60,37 @@ class _LoginScreenState extends State<LoginScreen> {
             child: ListView(
               padding: const EdgeInsets.all(25),
               children: [
-                const SizedBox(height: 50,),
-                Image.asset("assets/images/logo.png", width: 175, height: 175,),
-                const SizedBox(height: 50,),
-                Text("Login", style: theme.textTheme.displayMedium,),
-                SizedBox(height: 50, child: Text("Login to continue using the app...", style: theme.textTheme.bodyMedium,)),
+                const SizedBox(height: 50),
+                Image.asset("assets/images/logo.png", width: 175, height: 175),
+                const SizedBox(height: 50),
+                Text(loc.loginTitle, style: theme.textTheme.displayMedium),
+                SizedBox(height: 50, child: Text(loc.loginSubtitle, style: theme.textTheme.bodyMedium)),
                 
-                Text("Phone number", style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),),
-                // --- REPLACED CTextField with TextFormField ---
+                Text(loc.phoneNumber, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
                 TextFormField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   validator: (val) => Validators.hasMinLength(val, 10),
                   maxLength: 10,
-                  decoration: const InputDecoration(hintText: "Enter your phone number", counterText: ""),
+                  decoration: InputDecoration(hintText: loc.enterPhoneNumber, counterText: ""),
                 ),
-                const SizedBox(height: 25,),
+                const SizedBox(height: 25),
                 
-                Text("Password", style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),),
-                // --- REPLACED CTextField with TextFormField ---
+                Text(loc.password, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
                 TextFormField(
                   controller: _passwordController,
-                  obscureText: true, // Replaces isPassword
+                  obscureText: _obscurePassword,
                   validator: (val) => Validators.hasMinLength(val, 4),
-                   maxLength: 20,
-                  decoration: const InputDecoration(hintText: "Enter your password", counterText: ""),
+                  maxLength: 20,
+                  // --- UPDATED: Added visibility toggle ---
+                  decoration: InputDecoration(
+                    hintText: loc.enterPassword,
+                    counterText: "",
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    ),
+                  ),
                 ),
                 
                 Container(
@@ -88,11 +99,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()));
                     },
-                    child: const Text("Forgot your password?"),
+                    child: Text(loc.forgotYourPassword),
                   ),
                 ),
 
-                const SizedBox(height: 20,),
+                const SizedBox(height: 20),
 
                 if (userProvider.status == UserStatus.Error && userProvider.errorMessage != null)
                   Container(
@@ -103,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(15),
                       border: Border.all(color: theme.colorScheme.error.withOpacity(0.3), width: 1),
                     ),
-                    child: Text(userProvider.errorMessage!, style: TextStyle(color: theme.colorScheme.error, fontWeight: FontWeight.bold), textAlign: TextAlign.center,),
+                    child: Text(userProvider.errorMessage!, style: TextStyle(color: theme.colorScheme.error, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
                   ),
 
                 SizedBox(
@@ -116,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: userProvider.status == UserStatus.Loading ? null : () => _login(context),
                     child: userProvider.status == UserStatus.Loading
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('Login'),
+                        : Text(loc.login),
                   ),
                 ),
 
@@ -124,10 +135,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("Don't have an account? ", style: theme.textTheme.bodyMedium,),
+                    Text(loc.dontHaveAnAccount, style: theme.textTheme.bodyMedium),
                     GestureDetector(
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const RegisterPage())),
-                      child: Text("Register", style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
+                      child: Text(loc.register, style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),

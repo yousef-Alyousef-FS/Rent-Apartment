@@ -34,35 +34,57 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
     await Future.wait([provider.fetchPendingUsers(), provider.fetchAllUsers()]);
   }
 
+  // --- NEW: Confirmation dialog for delete action ---
+  void _showDeleteConfirmationDialog(BuildContext context, AdminProvider provider, User user) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: Text('Are you sure you want to permanently delete the user ${user.firstName} ${user.lastName}? This action cannot be undone.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                provider.deleteUser(user.id!);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Admin Dashboard'),
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
-            onPressed: () {
-              Provider.of<AdminProvider>(context, listen: false).logout();
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const AdminLoginScreen()),
-              );
-            },
-          ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Pending'),
-            Tab(text: 'All Users'),
-          ],
-        ),
-      ),
-      body: Consumer<AdminProvider>(
-        builder: (context, provider, child) {
-          if (provider.status == AdminStatus.Loading && (provider.pendingUsers.isEmpty && provider.allUsers.isEmpty)) {
+        appBar: AppBar(
+            title: const Text('Admin Dashboard'),
+            automaticallyImplyLeading: false,
+            actions: [
+              IconButton(
+                  icon: const Icon(Icons.logout),
+                  tooltip: 'Logout',
+                  onPressed: () {
+                    Provider.of<AdminProvider>(context, listen: false).logout();
+                    Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (context) => const AdminLoginScreen()));
+                  })
+            ],
+            bottom: TabBar(controller: _tabController, tabs: const [
+              Tab(text: 'Pending'),
+              Tab(text: 'All Users')
+            ])),
+        body: Consumer<AdminProvider>(builder: (context, provider, child) {
+          if (provider.status == AdminStatus.Loading &&
+              (provider.pendingUsers.isEmpty && provider.allUsers.isEmpty)) {
             return const Center(child: CircularProgressIndicator());
           }
           if (provider.status == AdminStatus.Error) {
@@ -70,18 +92,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
           }
 
           return RefreshIndicator(
-            onRefresh: _refreshData,
-            child: TabBarView(
-              controller: _tabController,
-              children: [
+              onRefresh: _refreshData,
+              child: TabBarView(controller: _tabController, children: [
                 _buildPendingUsersList(provider.pendingUsers, provider),
-                _buildAllUsersList(provider.allUsers, provider),
-              ],
-            ),
-          );
-        },
-      ),
-    );
+                _buildAllUsersList(provider.allUsers, provider)
+              ]));
+        }));
   }
 
   Widget _buildPendingUsersList(List<User> users, AdminProvider provider) {
@@ -89,26 +105,34 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
       return const Center(child: Text('No pending users for approval.'));
     }
     return ListView.builder(
-      itemCount: users.length,
-      itemBuilder: (context, index) {
-        final user = users[index];
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: ListTile(
-            leading: CircleAvatar(backgroundImage: user.profileImageUrl != null ? NetworkImage(user.profileImageUrl!) : null, child: user.profileImageUrl == null ? const Icon(Icons.person) : null),
-            title: Text('${user.firstName} ${user.lastName}'),
-            subtitle: Text(user.phone ?? 'No phone number'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(icon: const Icon(Icons.check_circle_outline, color: Colors.green), tooltip: 'Accept', onPressed: () => provider.acceptUser(user.id!)),
-                IconButton(icon: const Icon(Icons.thumb_down_outlined, color: Colors.red), tooltip: 'Reject', onPressed: () => provider.rejectUser(user.id!)),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+        itemCount: users.length,
+        itemBuilder: (context, index) {
+          final user = users[index];
+          return Card(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: ListTile(
+                  leading: CircleAvatar(
+                      backgroundImage: user.profileImageUrl != null
+                          ? NetworkImage(user.profileImageUrl!)
+                          : null,
+                      child: user.profileImageUrl == null
+                          ? const Icon(Icons.person)
+                          : null),
+                  title: Text('${user.firstName} ${user.lastName}'),
+                  subtitle: Text(user.phone ?? 'No phone number'),
+                  trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                            icon: const Icon(Icons.check_circle_outline, color: Colors.green),
+                            tooltip: 'Accept',
+                            onPressed: () => provider.acceptUser(user.id!)),
+                        IconButton(
+                            icon: const Icon(Icons.thumb_down_outlined, color: Colors.red),
+                            tooltip: 'Reject',
+                            onPressed: () => provider.rejectUser(user.id!))
+                      ])));
+        });
   }
 
   Widget _buildAllUsersList(List<User> users, AdminProvider provider) {
@@ -116,19 +140,26 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Single
       return const Center(child: Text('No users found in the system.'));
     }
     return ListView.builder(
-      itemCount: users.length,
-      itemBuilder: (context, index) {
-        final user = users[index];
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: ListTile(
-            leading: CircleAvatar(backgroundImage: user.profileImageUrl != null ? NetworkImage(user.profileImageUrl!) : null, child: user.profileImageUrl == null ? const Icon(Icons.person) : null),
-            title: Text('${user.firstName} ${user.lastName}'),
-            subtitle: Text('Status: ${user.status ?? 'N/A'}'),
-            trailing: IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), tooltip: 'Delete', onPressed: () => provider.deleteUser(user.id!)),
-          ),
-        );
-      },
-    );
+        itemCount: users.length,
+        itemBuilder: (context, index) {
+          final user = users[index];
+          return Card(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: ListTile(
+                  leading: CircleAvatar(
+                      backgroundImage: user.profileImageUrl != null
+                          ? NetworkImage(user.profileImageUrl!)
+                          : null,
+                      child: user.profileImageUrl == null
+                          ? const Icon(Icons.person)
+                          : null),
+                  title: Text('${user.firstName} ${user.lastName}'),
+                  subtitle: Text('Status: ${user.status ?? 'N/A'}'),
+                  // --- UPDATED: Calls confirmation dialog before deleting ---
+                  trailing: IconButton(
+                      icon: const Icon(Icons.delete_outline, color: Colors.red),
+                      tooltip: 'Delete',
+                      onPressed: () => _showDeleteConfirmationDialog(context, provider, user))));
+        });
   }
 }

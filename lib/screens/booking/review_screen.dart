@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/providers/review_provider.dart';
+import 'package:sakani/providers/review_provider.dart';
 // --- CORRECTED: The one true, standard path ---
-import 'package:plproject/generated/app_localizations.dart';
+import 'package:sakani/generated/app_localizations.dart';
 
 class ReviewScreen extends StatefulWidget {
   final int apartmentId;

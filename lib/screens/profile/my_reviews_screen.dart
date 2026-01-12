@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/models/review.dart';
-import 'package:plproject/providers/review_provider.dart';
-import 'package:plproject/generated/app_localizations.dart';
+import 'package:sakani/models/review.dart';
+import 'package:sakani/providers/review_provider.dart';
+import 'package:sakani/generated/app_localizations.dart';
 
 class MyReviewsScreen extends StatefulWidget {
   const MyReviewsScreen({super.key});

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/models/apartment.dart';
-import 'package:plproject/models/booking.dart';
-import 'package:plproject/providers/booking_provider.dart';
-import 'package:plproject/generated/app_localizations.dart';
+import 'package:sakani/models/apartment.dart';
+import 'package:sakani/models/booking.dart';
+import 'package:sakani/providers/booking_provider.dart';
+import 'package:sakani/generated/app_localizations.dart';
 
 class ApartmentBookingsScreen extends StatelessWidget {
   final Apartment apartment;
@@ -17,7 +17,7 @@ class ApartmentBookingsScreen extends StatelessWidget {
     // Filter the owner's bookings to only show bookings for this specific apartment
     final bookingsForThisApartment = Provider.of<BookingProvider>(context)
         .ownerBookings
-        .where((b) => b.apartment.id == apartment.id)
+        .where((b) => b.apartment?.id == apartment.id)
         .toList();
 
     return Scaffold(
@@ -52,12 +52,12 @@ class ApartmentBookingsScreen extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundImage: booking.user.profileImageUrl != null
-              ? NetworkImage(booking.user.profileImageUrl!)
+          backgroundImage: booking.user?.profileImageUrl != null
+              ? NetworkImage(booking.user!.profileImageUrl!)
               : null,
-          child: booking.user.profileImageUrl == null ? const Icon(Icons.person) : null,
+          child: booking.user?.profileImageUrl == null ? const Icon(Icons.person) : null,
         ),
-        title: Text('${loc.bookedBy} ${booking.user.firstName} ${booking.user.lastName}'),
+        title: Text('${loc.bookedBy} ${booking.user?.firstName} ${booking.user?.lastName}'),
         subtitle: Text(
             '${dateFormat.format(booking.checkInDate)} - ${dateFormat.format(booking.checkOutDate)}\n${loc.status}: ${booking.status}'),
         trailing: Text(

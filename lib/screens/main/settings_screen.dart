@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/providers/theme_provider.dart';
-import 'package:plproject/providers/locale_provider.dart';
-// --- CORRECTED: The one true, standard path ---
-import 'package:plproject/generated/app_localizations.dart';
-import 'package:plproject/screens/profile/edit_profile_screen.dart';
-import 'package:plproject/screens/profile/change_password_screen.dart';
+import 'package:sakani/providers/theme_provider.dart';
+import 'package:sakani/providers/locale_provider.dart';
+// --- CORRECTEDsakani true, standard path ---
+import 'package:sakani/generated/app_localizations.dart';
+import 'package:sakani/screens/profile/edit_profile_screen.dart';
+import 'package:sakani/screens/profile/change_password_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});

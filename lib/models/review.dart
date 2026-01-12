@@ -1,5 +1,5 @@
-import 'package:plproject/models/apartment.dart';
-import 'package:plproject/models/user.dart';
+import 'package:sakani/models/apartment.dart';
+import 'package:sakani/models/user.dart';
 
 class Review {
   final int id;

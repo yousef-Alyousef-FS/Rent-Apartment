@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/models/user.dart';
-import 'package:plproject/providers/user_provider.dart';
-import 'package:plproject/screens/main/settings_screen.dart';
-// --- CORRECTED: Use the correct screen we already built ---
-import 'package:plproject/screens/booking/bookings_list_screen.dart'; 
-import 'package:plproject/screens/profile/my_reviews_screen.dart';
-import 'package:plproject/screens/profile/edit_profile_screen.dart';
-import 'package:plproject/screens/auth/welcome_auth_screen.dart';
-import 'package:plproject/widgets/menu_list_item.dart'; 
-import 'package:plproject/generated/app_localizations.dart';
+import 'package:sakani/models/user.dart';
+import 'package:sakani/providers/user_provider.dart';
+import 'package:sakani/screens/main/settings_screen.dart';
+// --- CORRECTEDsakani correct screen we already built ---
+import 'package:sakani/screens/booking/bookings_list_screen.dart';
+import 'package:sakani/screens/profile/my_reviews_screen.dart';
+import 'package:sakani/screens/profile/edit_profile_screen.dart';
+import 'package:sakani/screens/auth/welcome_auth_screen.dart';
+import 'package:sakani/widgets/menu_list_item.dart';
+import 'package:sakani/generated/app_localizations.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});

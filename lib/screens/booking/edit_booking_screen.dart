@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/models/booking.dart';
-import 'package:plproject/providers/booking_provider.dart';
-// --- CORRECTED: This is the one true path for the localization file ---
-import 'package:plproject/generated/app_localizations.dart';
+import 'package:sakani/models/booking.dart';
+import 'package:sakani/providers/booking_provider.dart';
+import 'package:sakani/generated/app_localizations.dart';
 
 class EditBookingScreen extends StatefulWidget
 {
@@ -105,7 +104,8 @@ class _EditBookingScreenState extends State<EditBookingScreen>
                 padding: const EdgeInsets.all(16.0),
                 children: [
                     Text(loc.selectNewDates, style: theme.textTheme.titleMedium),
-                    Text(widget.booking.apartment.title, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                    // --- CORRECTED: Safely access the apartment title ---
+                    Text(widget.booking.apartment?.title ?? '...', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
                     const Divider(height: 32),
                     _buildDateSelector(context, theme, loc.checkIn, _newCheckInDate, () => _selectDate(context, true)),
                     const SizedBox(height: 16),

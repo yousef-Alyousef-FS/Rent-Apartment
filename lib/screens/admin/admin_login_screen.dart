@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/providers/admin_provider.dart';
-import 'package:plproject/screens/admin/admin_dashboard_screen.dart';
+import 'package:sakani/providers/admin_provider.dart';
+import 'package:sakani/screens/admin/admin_dashboard_screen.dart';
 
 class AdminLoginScreen extends StatefulWidget
 {
@@ -15,8 +15,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
 {
     final _formKey = GlobalKey<FormState>();
     // --- UPDATED: from email to phone ---
-    final _phoneController = TextEditingController(text: '0912345678');
-    final _passwordController = TextEditingController(text: 'password');
+    final _phoneController = TextEditingController(text: '1234567890');
+    final _passwordController = TextEditingController(text: 'admin1234');
 
     Future<void> _login() async
     {

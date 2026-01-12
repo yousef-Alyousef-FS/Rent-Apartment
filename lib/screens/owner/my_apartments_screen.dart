@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/models/apartment.dart';
-import 'package:plproject/providers/apartment_provider.dart';
-import 'package:plproject/generated/app_localizations.dart';
-import 'package:plproject/screens/apartments/apartment_details_screen.dart';
-import 'package:plproject/screens/owner/edit_apartment_screen.dart';
-import 'package:plproject/screens/owner/apartment_bookings_screen.dart';
+import 'package:sakani/models/apartment.dart';
+import 'package:sakani/providers/apartment_provider.dart';
+import 'package:sakani/generated/app_localizations.dart';
+import 'package:sakani/screens/apartments/apartment_details_screen.dart';
+import 'package:sakani/screens/owner/edit_apartment_screen.dart';
+import 'package:sakani/screens/owner/apartment_bookings_screen.dart';
 
 class MyApartmentsScreen extends StatefulWidget {
   const MyApartmentsScreen({super.key});
@@ -27,7 +27,6 @@ class _MyApartmentsScreenState extends State<MyApartmentsScreen> {
   }
 
   Future<void> _fetchMyApartments({bool forceRefresh = false}) {
-    // Correctly call the provider using the context
     return Provider.of<ApartmentProvider>(context, listen: false).fetchMyApartments();
   }
 
@@ -71,7 +70,7 @@ class _MyApartmentsScreenState extends State<MyApartmentsScreen> {
     final loc = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: Text(loc.myBookings), // Localized
+        title: Text(loc.myApartments), // Corrected localization key
       ),
       body: RefreshIndicator(
         onRefresh: () => _fetchMyApartments(forceRefresh: true),
@@ -81,10 +80,10 @@ class _MyApartmentsScreenState extends State<MyApartmentsScreen> {
               return const Center(child: CircularProgressIndicator());
             }
             if (provider.status == ApartmentStatus.Error) {
-              return Center(child: Text(provider.errorMessage ?? loc.couldNotLoadApartments)); // Localized
+              return Center(child: Text(provider.errorMessage ?? loc.couldNotLoadApartments));
             }
             if (provider.myApartments.isEmpty) {
-              return Center(child: Text(loc.noApartmentsAdded, style: Theme.of(context).textTheme.titleLarge)); // Localized
+              return Center(child: Text(loc.noApartmentsAdded, style: Theme.of(context).textTheme.titleLarge));
             }
 
             return ListView.builder(
@@ -121,9 +120,9 @@ class _MyApartmentsScreenState extends State<MyApartmentsScreen> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: Image.network(
-                      apartment.imageUrls.isNotEmpty ? apartment.imageUrls[0] : '',
+                      apartment.images.isNotEmpty ? apartment.images[0].imageUrl : '', // CORRECTED
                       width: 100, height: 100, fit: BoxFit.cover,
-                      errorBuilder: (ctx, err, st) => Container(width: 100, height: 100, color: Colors.grey[200]),
+                      errorBuilder: (ctx, err, st) => Container(width: 100, height: 100, color: Colors.grey[200], child: const Icon(Icons.apartment, color: Colors.grey)),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -156,7 +155,7 @@ class _MyApartmentsScreenState extends State<MyApartmentsScreen> {
                     ),
                   const Spacer(),
                   TextButton(
-                    child: Text(loc.editApartment), // Localized
+                    child: Text(loc.editApartment),
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(builder: (context) => EditApartmentScreen(apartment: apartment)),
@@ -165,7 +164,7 @@ class _MyApartmentsScreenState extends State<MyApartmentsScreen> {
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton(
-                    child: Text(loc.viewBookings), // Localized
+                    child: Text(loc.viewBookings),
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(builder: (context) => ApartmentBookingsScreen(apartment: apartment)),
@@ -188,7 +187,7 @@ class _MyApartmentsScreenState extends State<MyApartmentsScreen> {
       children: [
         const Icon(Icons.star, color: Colors.amber, size: 18),
         const SizedBox(width: 4),
-        Text('$rating (${loc.reviews(reviewCount)})', style: theme.textTheme.bodyMedium), // Localized
+        Text('$rating (${loc.reviews(reviewCount)})', style: theme.textTheme.bodyMedium),
       ],
     );
   }

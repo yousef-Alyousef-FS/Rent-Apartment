@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:plproject/screens/booking/bookings_list_screen.dart';
-import 'package:plproject/screens/main/explore_screen.dart';
-import 'package:plproject/screens/main/favorites_screen.dart';
-import 'package:plproject/screens/main/home_screen.dart';
-import 'package:plproject/screens/owner/owner_dashboard.dart';
+import 'package:sakani/generated/app_localizations.dart';
+import 'package:sakani/screens/booking/bookings_list_screen.dart';
+import 'package:sakani/screens/main/explore_screen.dart';
+import 'package:sakani/screens/main/favorites_screen.dart';
+import 'package:sakani/screens/main/home_screen.dart';
+import 'package:sakani/screens/owner/owner_dashboard.dart';
 
 class AppContainer extends StatefulWidget {
   const AppContainer({super.key});
@@ -31,37 +32,38 @@ class _AppContainerState extends State<AppContainer> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       body: IndexedStack(
         index: _selectedIndex,
         children: _mainScreens,
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
+        items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
+            icon: const Icon(Icons.home_outlined),
+            activeIcon: const Icon(Icons.home),
+            label: loc.navHome,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.search_outlined),
-            activeIcon: Icon(Icons.search),
-            label: 'Explore',
+            icon: const Icon(Icons.search_outlined),
+            activeIcon: const Icon(Icons.search),
+            label: loc.navExplore,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_border),
-            activeIcon: Icon(Icons.favorite),
-            label: 'Favorites',
+            icon: const Icon(Icons.favorite_border),
+            activeIcon: const Icon(Icons.favorite),
+            label: loc.navFavorites,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.business_outlined),
-            activeIcon: Icon(Icons.business),
-            label: 'My Place',
+            icon: const Icon(Icons.business_outlined),
+            activeIcon: const Icon(Icons.business),
+            label: loc.navMyPlace,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.bookmark_border),
-            activeIcon: Icon(Icons.bookmark),
-            label: 'Bookings',
+            icon: const Icon(Icons.bookmark_border),
+            activeIcon: const Icon(Icons.bookmark),
+            label: loc.navBookings,
           ),
         ],
         currentIndex: _selectedIndex,

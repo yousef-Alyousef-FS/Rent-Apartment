@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:plproject/models/booking.dart';
-// --- CORRECTED: Use the correct path for generated localizations ---
-import 'package:plproject/generated/app_localizations.dart';
-import 'package:plproject/screens/booking/booking_detail_screen.dart';
+import 'package:sakani/models/booking.dart';
+import 'package:sakani/generated/app_localizations.dart';
+import 'package:sakani/screens/booking/bookings_list_screen.dart';
 
-class BookingSuccessScreen extends StatelessWidget {
+// RENAMED and REBUILT: To reflect that a request was sent, not that the booking is confirmed.
+class BookingRequestSentScreen extends StatelessWidget {
   final Booking booking;
 
-  const BookingSuccessScreen({super.key, required this.booking});
+  const BookingRequestSentScreen({super.key, required this.booking});
 
   @override
   Widget build(BuildContext context) {
@@ -27,29 +27,32 @@ class BookingSuccessScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.green.withOpacity(0.1),
+                  color: theme.colorScheme.primary.withOpacity(0.1),
                 ),
-                child: const Icon(Icons.check_circle_outline_rounded, color: Colors.green, size: 100),
+                // Use a more appropriate icon for a pending request
+                child: Icon(Icons.outbox_rounded, color: theme.colorScheme.primary, size: 100),
               ),
               const SizedBox(height: 32),
               Text(
-                loc.bookingSuccessful, // Localized text
+                loc.bookingRequestSent,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.displaySmall,
               ),
               const SizedBox(height: 16),
               Text(
-                loc.bookingSuccessMessage, // Localized text
+                loc.bookingRequestSentMessage,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.titleMedium?.copyWith(color: Colors.grey[600]),
               ),
               const Spacer(),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pushReplacement(
+                  // Navigate to the bookings list so the user can see the pending request
+                  Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(
-                      builder: (context) => BookingDetailScreen(booking: booking),
+                      builder: (context) => const BookingsListScreen(),
                     ),
+                     (route) => route.isFirst,
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -57,14 +60,14 @@ class BookingSuccessScreen extends StatelessWidget {
                   backgroundColor: theme.colorScheme.primary,
                   foregroundColor: theme.colorScheme.onPrimary,
                 ),
-                child: Text(loc.viewBookingDetails), // Localized text
+                child: Text(loc.viewMyBookings),
               ),
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () {
                   Navigator.of(context).popUntil((route) => route.isFirst);
                 },
-                child: Text(loc.backToHome), // Localized text
+                child: Text(loc.backToHome),
               ),
             ],
           ),

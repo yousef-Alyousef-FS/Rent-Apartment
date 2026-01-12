@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/generated/app_localizations.dart'; // Import localizations
-import 'package:plproject/providers/apartment_provider.dart';
-import 'package:plproject/providers/user_provider.dart';
-import 'package:plproject/screens/auth/welcome_auth_screen.dart';
+import 'package:sakani/generated/app_localizations.dart'; // Import localizations
+import 'package:sakani/providers/apartment_provider.dart';
+import 'package:sakani/providers/user_provider.dart';
+import 'package:sakani/screens/auth/welcome_auth_screen.dart';
 import '../../widgets/apartment_card.dart';
 
 class Apartments extends StatefulWidget {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/models/user.dart';
-import 'package:plproject/providers/admin_provider.dart';
-import 'package:plproject/screens/admin/admin_login_screen.dart';
+import 'package:sakani/models/user.dart';
+import 'package:sakani/providers/admin_provider.dart';
+import 'package:sakani/screens/admin/admin_login_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});

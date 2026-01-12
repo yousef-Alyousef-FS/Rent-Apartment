@@ -647,4 +647,135 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get applyFilters => 'تطبيق الفلاتر';
+
+  @override
+  String get adminDashboard => 'Admin Dashboard';
+
+  @override
+  String get confirmDeletion => 'Confirm Deletion';
+
+  @override
+  String areYouSureDeleteUser(Object fullName) {
+    return 'Are you sure you want to permanently delete the user $fullName? This action cannot be undone.';
+  }
+
+  @override
+  String get accept => 'Accept';
+
+  @override
+  String get noPendingUsers => 'No pending users for approval.';
+
+  @override
+  String get allUsers => 'All Users';
+
+  @override
+  String get noUsersFound => 'No users found in the system.';
+
+  @override
+  String get pending => 'Pending';
+
+  @override
+  String get navHome => 'الرئيسية';
+
+  @override
+  String get navExplore => 'استكشاف';
+
+  @override
+  String get navFavorites => 'المفضلة';
+
+  @override
+  String get navMyPlace => 'مكاني';
+
+  @override
+  String get navBookings => 'الحجوزات';
+
+  @override
+  String get homeScreenTitle => 'الرئيسية';
+
+  @override
+  String get settingsTooltip => 'الإعدادات';
+
+  @override
+  String get homeScreenMessage =>
+      'استكشف الشقق أو قم بإدارة ممتلكاتك باستخدام علامات التبويب أدناه.';
+
+  @override
+  String welcomeBack(Object name) {
+    return 'أهلاً بعودتك، $name!';
+  }
+
+  @override
+  String get exploreScreenTitle => 'استكشف وابحث';
+
+  @override
+  String get searchPlaceholder => 'ابحث عن أماكن بالاسم...';
+
+  @override
+  String get genericFetchError => 'حدث خطأ. اسحب للتحديث.';
+
+  @override
+  String get noResults => 'لا توجد شقق تطابق معاييرك.';
+
+  @override
+  String get filterSheetTitle => 'خيارات الفلترة';
+
+  @override
+  String get filterLocation => 'الموقع';
+
+  @override
+  String get filterPriceRange => 'نطاق السعر';
+
+  @override
+  String get filterSpecifications => 'المواصفات';
+
+  @override
+  String get favoritesTitle => 'مفضلتي';
+
+  @override
+  String get noFavoritesMessage => 'الأماكن المفضلة لديك ستظهر هنا.';
+
+  @override
+  String get resetPasswordSuccess => 'تم إرسال التعليمات بنجاح!';
+
+  @override
+  String get unknownError => 'حدث خطأ غير معروف.';
+
+  @override
+  String get couldNotLaunchMaps => 'تعذر تشغيل الخرائط';
+
+  @override
+  String get bookingDetailsUnavailable => 'تفاصيل الحجز غير متوفرة';
+
+  @override
+  String bookingId(Object id) {
+    return 'معرّف الحجز: $id';
+  }
+
+  @override
+  String get bookingRequestSent => 'تم إرسال الطلب!';
+
+  @override
+  String get bookingRequestSentMessage =>
+      'تم إرسال طلب الحجز الخاص بك إلى المالك. يمكنك عرض حالته في قائمة حجوزاتك.';
+
+  @override
+  String get viewMyBookings => 'عرض حجوزاتي';
+
+  @override
+  String get status_pending_approval => 'بانتظار الموافقة';
+
+  @override
+  String get status_confirmed => 'مؤكد';
+
+  @override
+  String get status_rejected => 'مرفوض';
+
+  @override
+  String get status_cancelled => 'ملغي';
+
+  @override
+  String get status_completed => 'مكتمل';
+
+  @override
+  String get sendBookingRequest => 'إرسال طلب الحجز';
 }

@@ -1291,6 +1291,252 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apply Filters'**
   String get applyFilters;
+
+  /// No description provided for @adminDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Dashboard'**
+  String get adminDashboard;
+
+  /// No description provided for @confirmDeletion.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Deletion'**
+  String get confirmDeletion;
+
+  /// No description provided for @areYouSureDeleteUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to permanently delete the user {fullName}? This action cannot be undone.'**
+  String areYouSureDeleteUser(Object fullName);
+
+  /// No description provided for @accept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get accept;
+
+  /// No description provided for @noPendingUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending users for approval.'**
+  String get noPendingUsers;
+
+  /// No description provided for @allUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'All Users'**
+  String get allUsers;
+
+  /// No description provided for @noUsersFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No users found in the system.'**
+  String get noUsersFound;
+
+  /// No description provided for @pending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get pending;
+
+  /// No description provided for @navHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get navHome;
+
+  /// No description provided for @navExplore.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore'**
+  String get navExplore;
+
+  /// No description provided for @navFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get navFavorites;
+
+  /// No description provided for @navMyPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'My Place'**
+  String get navMyPlace;
+
+  /// No description provided for @navBookings.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookings'**
+  String get navBookings;
+
+  /// No description provided for @homeScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get homeScreenTitle;
+
+  /// No description provided for @settingsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTooltip;
+
+  /// No description provided for @homeScreenMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore apartments or manage your properties using the tabs below.'**
+  String get homeScreenMessage;
+
+  /// No description provided for @welcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back, {name}!'**
+  String welcomeBack(Object name);
+
+  /// No description provided for @exploreScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore & Search'**
+  String get exploreScreenTitle;
+
+  /// No description provided for @searchPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Search places by title...'**
+  String get searchPlaceholder;
+
+  /// No description provided for @genericFetchError.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred. Pull to refresh.'**
+  String get genericFetchError;
+
+  /// No description provided for @noResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No apartments match your criteria.'**
+  String get noResults;
+
+  /// No description provided for @filterSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter Options'**
+  String get filterSheetTitle;
+
+  /// No description provided for @filterLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get filterLocation;
+
+  /// No description provided for @filterPriceRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Price Range'**
+  String get filterPriceRange;
+
+  /// No description provided for @filterSpecifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Specifications'**
+  String get filterSpecifications;
+
+  /// No description provided for @favoritesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My Favorites'**
+  String get favoritesTitle;
+
+  /// No description provided for @noFavoritesMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your favorite places will appear here.'**
+  String get noFavoritesMessage;
+
+  /// No description provided for @resetPasswordSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Instructions sent successfully!'**
+  String get resetPasswordSuccess;
+
+  /// No description provided for @unknownError.
+  ///
+  /// In en, this message translates to:
+  /// **'An unknown error occurred.'**
+  String get unknownError;
+
+  /// No description provided for @couldNotLaunchMaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not launch maps'**
+  String get couldNotLaunchMaps;
+
+  /// No description provided for @bookingDetailsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking details are unavailable'**
+  String get bookingDetailsUnavailable;
+
+  /// No description provided for @bookingId.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking ID: {id}'**
+  String bookingId(Object id);
+
+  /// No description provided for @bookingRequestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Sent!'**
+  String get bookingRequestSent;
+
+  /// No description provided for @bookingRequestSentMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your booking request has been sent to the owner. You can view its status in your bookings list.'**
+  String get bookingRequestSentMessage;
+
+  /// No description provided for @viewMyBookings.
+  ///
+  /// In en, this message translates to:
+  /// **'View My Bookings'**
+  String get viewMyBookings;
+
+  /// No description provided for @status_pending_approval.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Approval'**
+  String get status_pending_approval;
+
+  /// No description provided for @status_confirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get status_confirmed;
+
+  /// No description provided for @status_rejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get status_rejected;
+
+  /// No description provided for @status_cancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get status_cancelled;
+
+  /// No description provided for @status_completed.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get status_completed;
+
+  /// No description provided for @sendBookingRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Booking Request'**
+  String get sendBookingRequest;
 }
 
 class _AppLocalizationsDelegate

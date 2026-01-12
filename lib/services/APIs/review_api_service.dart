@@ -1,18 +1,19 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:plproject/models/review.dart';
-import 'package:plproject/settings/connection.dart';
+import 'package:sakani/models/review.dart';
+import 'package:sakani/settings/connection.dart';
 
 class ReviewApiService {
   static const String _baseUrl = Connection.emulator_baseUrl;
 
+  // ---MODIFIED---
   Future<void> addReview({
     required String token,
     required int apartmentId,
     required int rating,
     required String comment,
   }) async {
-    final uri = Uri.parse('$_baseUrl/apartments/$apartmentId/reviews');
+    final uri = Uri.parse('$_baseUrl/apartments/$apartmentId/review'); // Endpoint is singular as per docs
 
     final response = await http.post(
       uri,
@@ -34,9 +35,9 @@ class ReviewApiService {
     }
   }
 
-  // --- NEW: Function to get the current user's reviews ---
+  // ---UNCHANGED (Awaiting Backend Endpoint Documentation)---
   Future<List<Review>> getMyReviews(String token) async {
-    final uri = Uri.parse('$_baseUrl/my-reviews');
+    final uri = Uri.parse('$_baseUrl/my-reviews'); // This endpoint is not in the new docs
 
     final response = await http.get(
       uri,

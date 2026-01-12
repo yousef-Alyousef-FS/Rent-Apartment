@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/models/apartment.dart';
-import 'package:plproject/models/booking.dart';
-import 'package:plproject/providers/apartment_provider.dart';
-import 'package:plproject/providers/booking_provider.dart';
-import 'package:plproject/generated/app_localizations.dart';
-import 'package:plproject/screens/apartments/apartment_details_screen.dart';
-import 'package:plproject/screens/owner/add_apartment_screen.dart';
-import 'package:plproject/screens/owner/owner_bookings_screen.dart';
-import 'package:plproject/screens/owner/my_apartments_screen.dart';
-import 'package:plproject/screens/owner/manage_booking_screen.dart';
+import 'package:sakani/models/apartment.dart';
+import 'package:sakani/models/booking.dart';
+import 'package:sakani/providers/apartment_provider.dart';
+import 'package:sakani/providers/booking_provider.dart';
+import 'package:sakani/generated/app_localizations.dart';
+import 'package:sakani/screens/apartments/apartment_details_screen.dart';
+import 'package:sakani/screens/owner/add_apartment_screen.dart';
+import 'package:sakani/screens/owner/owner_bookings_screen.dart';
+import 'package:sakani/screens/owner/my_apartments_screen.dart';
+import 'package:sakani/screens/owner/manage_booking_screen.dart';
 
 class OwnerDashboard extends StatefulWidget {
   const OwnerDashboard({super.key});
@@ -107,11 +107,11 @@ class _OwnerDashboardState extends State<OwnerDashboard> {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
-          backgroundImage: booking.user.profileImageUrl != null ? NetworkImage(booking.user.profileImageUrl!) : null,
-          child: booking.user.profileImageUrl == null ? const Icon(Icons.person) : null,
+          backgroundImage: booking.user?.profileImageUrl != null ? NetworkImage(booking.user!.profileImageUrl!) : null,
+          child: booking.user?.profileImageUrl == null ? const Icon(Icons.person) : null,
         ),
-        title: Text('${booking.user.firstName} ${booking.user.lastName}', style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text('${booking.apartment.title}\n${dateFormat.format(booking.checkInDate)} - ${dateFormat.format(booking.checkOutDate)}'),
+        title: Text('${booking.user?.firstName} ${booking.user?.lastName}', style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text('${booking.apartment?.title}\n${dateFormat.format(booking.checkInDate)} - ${dateFormat.format(booking.checkOutDate)}'),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => Navigator.of(context).push(MaterialPageRoute(
           builder: (ctx) => ManageBookingScreen(booking: booking),

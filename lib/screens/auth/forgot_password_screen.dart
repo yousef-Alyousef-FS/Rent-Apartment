@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/generated/app_localizations.dart';
-import 'package:plproject/providers/user_provider.dart';
-import 'package:plproject/utils/validators.dart';
+import 'package:sakani/generated/app_localizations.dart';
+import 'package:sakani/providers/user_provider.dart';
+import 'package:sakani/utils/validators.dart';
 
 
 class ForgotPasswordScreen extends StatefulWidget
@@ -28,7 +28,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
         final userProvider = Provider.of<UserProvider>(context, listen: false);
         final success = await userProvider.requestPasswordReset(_phoneController.text);
 
-        // After the await, check if the widget is still in the tree
         if (!mounted) return;
 
         final loc = AppLocalizations.of(context)!;
@@ -36,17 +35,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
 
         if (success)
         {
-            // In a real scenario, this would show a success message.
-            // For now, our mocked function always fails, so this part won't be reached.
             ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Instructions sent successfully!'), backgroundColor: Colors.green)
+                SnackBar(content: Text(loc.resetPasswordSuccess), backgroundColor: Colors.green)
             );
         }
         else
         {
-            // The provider will have an error message because our mocked function throws one.
             ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(userProvider.errorMessage ?? 'An unknown error occurred.'), backgroundColor: theme.colorScheme.error)
+                SnackBar(content: Text(userProvider.errorMessage ?? loc.unknownError), backgroundColor: theme.colorScheme.error)
             );
         }
 

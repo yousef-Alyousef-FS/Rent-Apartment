@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:plproject/models/booking.dart';
-import 'package:plproject/providers/user_provider.dart';
-import 'package:plproject/services/APIs/booking_api_service.dart';
+import 'package:sakani/models/booking.dart';
+import 'package:sakani/providers/user_provider.dart';
+import 'package:sakani/services/APIs/booking_api_service.dart';
 
 enum BookingStatusState { Idle, Loading, Loaded, Error }
 

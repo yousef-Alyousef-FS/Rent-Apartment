@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:plproject/generated/app_localizations.dart';
+import 'package:sakani/generated/app_localizations.dart';
 
 class CustomSearchBar extends StatefulWidget {
   // --- NEW: Callback to notify the parent screen of the search query ---

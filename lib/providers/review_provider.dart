@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:plproject/models/review.dart';
-import 'package:plproject/providers/user_provider.dart';
-import 'package:plproject/services/APIs/review_api_service.dart';
+import 'package:sakani/models/review.dart';
+import 'package:sakani/providers/user_provider.dart';
+import 'package:sakani/services/APIs/review_api_service.dart';
 
 enum ReviewStatus { Idle, Loading, Success, Error }
 

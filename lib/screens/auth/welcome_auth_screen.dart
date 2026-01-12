@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:plproject/generated/app_localizations.dart'; // Import localizations
-import 'package:plproject/screens/auth/login.dart';
-import 'package:plproject/screens/auth/register.dart';
+import 'package:sakani/generated/app_localizations.dart'; // Import localizations
+import 'package:sakani/screens/auth/login.dart';
+import 'package:sakani/screens/auth/register.dart';
 
 class WelcomeAuthScreen extends StatelessWidget {
   const WelcomeAuthScreen({super.key});
@@ -12,7 +12,9 @@ class WelcomeAuthScreen extends StatelessWidget {
     final loc = AppLocalizations.of(context)!; // Localization instance
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
+
         child: Padding(
           padding: const EdgeInsets.all(25.0),
           child: Column(
@@ -20,14 +22,8 @@ class WelcomeAuthScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(),
-              Image.asset("assets/images/logo.png", height: 180),
+              Image.asset("assets/images/logo.png", height: 600,scale: 2,),
               const SizedBox(height: 20),
-              Text(
-                loc.welcomeToRentalApp,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.displayMedium,
-              ),
-              const SizedBox(height: 10),
               Text(
                 loc.findYourNextHome,
                 textAlign: TextAlign.center,

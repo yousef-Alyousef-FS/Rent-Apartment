@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/models/booking.dart';
-import 'package:plproject/providers/booking_provider.dart';
-import 'package:plproject/generated/app_localizations.dart';
-import 'package:plproject/screens/booking/edit_booking_screen.dart';
-import 'package:plproject/screens/booking/review_screen.dart';
+import 'package:sakani/models/booking.dart';
+import 'package:sakani/providers/booking_provider.dart';
+import 'package:sakani/generated/app_localizations.dart';
+import 'package:sakani/screens/booking/edit_booking_screen.dart';
+import 'package:sakani/screens/booking/review_screen.dart';
 
 class BookingsListScreen extends StatefulWidget {
   const BookingsListScreen({super.key});
@@ -86,9 +86,10 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
                 return Center(child: Text(loc.errorOccurred(provider.errorMessage ?? '...')));
               }
 
-              final upcoming = provider.myBookings.where((b) => b.status == 'confirmed').toList();
+              // Corrected the comparison to be safe and explicit
+              final upcoming = provider.myBookings.where((b) => b.status == 'confirmed' || b.status == 'pending_approval').toList();
               final completed = provider.myBookings.where((b) => b.status == 'completed').toList();
-              final cancelled = provider.myBookings.where((b) => b.status == 'cancelled').toList();
+              final cancelled = provider.myBookings.where((b) => b.status == 'cancelled' || b.status == 'rejected').toList();
 
               return TabBarView(
                 children: [
@@ -119,8 +120,19 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
 
   Widget _buildBookingCard(Booking booking, String? actionsType) {
     final loc = AppLocalizations.of(context)!;
-    // --- CORRECTED: Use the reliable way to get the current locale from the context ---
     final dateFormat = DateFormat('yMd', Localizations.localeOf(context).toLanguageTag());
+
+    if (booking.apartment == null) {
+      return Card(
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        color: Colors.red.withOpacity(0.05),
+        child: ListTile(
+          leading: const Icon(Icons.error_outline, color: Colors.red),
+          title: Text(loc.bookingDetailsUnavailable, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+          subtitle: Text(loc.bookingId(booking.id.toString())),
+        ),
+      );
+    }
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -133,7 +145,7 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
-                    booking.apartment.imageUrls.isNotEmpty ? booking.apartment.imageUrls[0] : '',
+                    booking.apartment!.images.isNotEmpty ? booking.apartment!.images[0].imageUrl : '',
                     width: 80, height: 80, fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(
                       width: 80, height: 80,
@@ -147,7 +159,7 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(booking.apartment.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text(booking.apartment!.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       const SizedBox(height: 4),
                       Text('${loc.dates}: ${dateFormat.format(booking.checkInDate)} - ${dateFormat.format(booking.checkOutDate)}', style: TextStyle(color: Colors.grey[600])),
                       const SizedBox(height: 4),
@@ -172,9 +184,9 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
     if (actionsType == 'upcoming') {
       return [
         TextButton(
-          onPressed: () {
+          onPressed: booking.apartment != null ? () {
             Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => EditBookingScreen(booking: booking)));
-          },
+          } : null,
           child: Text(loc.editBooking),
         ),
         _cancellingBookingId == booking.id
@@ -190,9 +202,9 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
     } else if (actionsType == 'completed') {
       return [
         TextButton(
-          onPressed: () {
-            Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => ReviewScreen(apartmentId: booking.apartment.id)));
-          },
+          onPressed: booking.apartment != null ? () {
+            Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => ReviewScreen(apartmentId: booking.apartment!.id)));
+          } : null,
           child: Text(loc.addReview),
         ),
       ];

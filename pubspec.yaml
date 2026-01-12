@@ -1,6 +1,6 @@
-name: plproject
+name: sakani
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: 'none' 
 version: 1.0.0+1
 
 environment:
@@ -23,17 +23,39 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
-  # CORRECTED: Use the version compatible with the Flutter SDK
+  flutter_launcher_icons: "^0.13.1"
+  flutter_native_splash: "^2.4.0"
   intl: ^0.20.2
+
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/icon.png"
+  min_sdk_android: 21 # optional
+
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/images/splash.png
+  android: true
+  ios: true
+  web: false
 
 flutter:
   generate: true
   uses-material-design: true
   assets:
-  - assets/images/
-  - assets/fonts/
+    - assets/images/
+    - assets/fonts/
 
   fonts:
+    - family: Cairo
+      fonts:
+        - asset: assets/fonts/Cairo-Regular.ttf
+        - asset: assets/fonts/Cairo-Bold.ttf
+          weight: 700
+
     - family: Poppins
       fonts:
         - asset: assets/fonts/Poppins-Regular.ttf

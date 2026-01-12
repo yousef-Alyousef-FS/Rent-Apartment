@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/providers/user_provider.dart';
-import 'package:plproject/screens/app_container.dart';
-import 'package:plproject/screens/auth/pending_approval_screen.dart';
-import 'package:plproject/screens/auth/welcome_auth_screen.dart';
+import 'package:sakani/providers/user_provider.dart';
+import 'package:sakani/screens/app_container.dart';
+import 'package:sakani/screens/auth/pending_approval_screen.dart';
+import 'package:sakani/screens/auth/welcome_auth_screen.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});

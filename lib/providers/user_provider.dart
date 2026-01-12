@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:plproject/services/APIs/user_api_service.dart';
+import 'package:sakani/services/APIs/user_api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:plproject/models/user.dart';
+import 'package:sakani/models/user.dart';
 
 enum UserStatus {
   Checking, Authenticated, Unauthenticated, Loading, Error
@@ -18,7 +18,6 @@ class UserProvider with ChangeNotifier {
   UserStatus _status = UserStatus.Checking;
   String? _errorMessage;
 
-  // --- UPDATED: To sync with the server ---
   List<int> _favoriteApartmentIds = [];
   List<int> get favoriteApartmentIds => _favoriteApartmentIds;
 
@@ -31,8 +30,6 @@ class UserProvider with ChangeNotifier {
   UserProvider() {
     tryAutoLogin();
   }
-
-  // --- FAVORITES LOGIC (SERVER-SIDE) ---
 
   Future<void> _fetchFavorites() async {
     if (_token == null) return;
@@ -48,6 +45,7 @@ class UserProvider with ChangeNotifier {
     return _favoriteApartmentIds.contains(apartmentId);
   }
 
+  // ---MODIFIED---
   Future<void> toggleFavorite(int apartmentId) async {
     if (_token == null) return;
 
@@ -61,11 +59,7 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      if (isCurrentlyFavorite) {
-        await _apiService.removeFavorite(_token!, apartmentId);
-      } else {
-        await _apiService.addFavorite(_token!, apartmentId);
-      }
+      await _apiService.toggleFavorite(_token!, apartmentId);
     } catch (e) {
       // Revert on error
       if (isCurrentlyFavorite) {
@@ -74,10 +68,9 @@ class UserProvider with ChangeNotifier {
         _favoriteApartmentIds.remove(apartmentId);
       }
       notifyListeners();
+      // Optionally re-throw or handle the error message to show in the UI
     }
   }
-
-  // --- AUTH LOGIC ---
 
   Future<void> tryAutoLogin() async {
     _status = UserStatus.Checking;
@@ -98,7 +91,7 @@ class UserProvider with ChangeNotifier {
       _user = userProfile;
       _token = storedToken;
       _status = UserStatus.Authenticated;
-      await _fetchFavorites(); // Fetch favorites on login
+      await _fetchFavorites();
     } catch (e) {
       await logout();
     }
@@ -122,7 +115,7 @@ class UserProvider with ChangeNotifier {
         await _saveToken(_token!);
       }
       _status = UserStatus.Authenticated;
-      await _fetchFavorites(); // Fetch favorites on login
+      await _fetchFavorites();
       notifyListeners();
       return true;
     } catch (e) {
@@ -165,8 +158,7 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> checkPhoneAndNavigate(String phone) async
-  {
+  Future<bool> checkPhoneAndNavigate(String phone) async {
     _status = UserStatus.Loading;
     _errorMessage = null;
     notifyListeners();
@@ -195,8 +187,7 @@ class UserProvider with ChangeNotifier {
     String? lastName,
     String? dateOfBirth,
     XFile? personalImage,
-  }) async
-  {
+  }) async {
     if (_token == null) return false;
     _status = UserStatus.Loading;
     _errorMessage = null;
@@ -219,8 +210,7 @@ class UserProvider with ChangeNotifier {
     required String currentPassword,
     required String newPassword,
     required String newPasswordConfirmation,
-  }) async
-  {
+  }) async {
     if (_token == null) return false;
     _errorMessage = null;
     notifyListeners();
@@ -259,13 +249,11 @@ class UserProvider with ChangeNotifier {
   Future<void> logout() async {
     try {
       if (_token != null) await _apiService.logout(_token!);
-    } catch (_) {
-      // Ignore errors on logout
-    }
+    } catch (_) {}
     _user = null;
     _token = null;
     _status = UserStatus.Unauthenticated;
-    _favoriteApartmentIds = []; // Clear favorites on logout
+    _favoriteApartmentIds = [];
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
     notifyListeners();

@@ -192,12 +192,63 @@
   "viewAndEditProfile": "View and edit profile",
   "notLoggedIn": "Not logged in",
   "searchHint": "Search for a city, neighborhood, or address...",
-
   "exploreAndSearch": "Explore & Search",
   "noApartmentsMatch": "No apartments match your criteria.",
   "filterOptions": "Filter Options",
   "priceRange": "Price Range",
   "minRooms": "Min. Rooms",
   "reset": "Reset",
-  "applyFilters": "Apply Filters"
+  "applyFilters": "Apply Filters",
+
+  "adminDashboard": "Admin Dashboard",
+  "confirmDeletion": "Confirm Deletion",
+  "areYouSureDeleteUser": "Are you sure you want to permanently delete the user {fullName}? This action cannot be undone.",
+  "accept": "Accept",
+  "noPendingUsers": "No pending users for approval.",
+  "allUsers": "All Users",
+  "noUsersFound": "No users found in the system.",
+  "pending": "Pending",
+
+  "navHome": "Home",
+  "navExplore": "Explore",
+  "navFavorites": "Favorites",
+  "navMyPlace": "My Place",
+  "navBookings": "Bookings",
+
+  "homeScreenTitle": "Home",
+  "settingsTooltip": "Settings",
+  "homeScreenMessage": "Explore apartments or manage your properties using the tabs below.",
+  "welcomeBack": "Welcome back, {name}!",
+
+  "exploreScreenTitle": "Explore & Search",
+  "searchPlaceholder": "Search places by title...",
+  "genericFetchError": "An error occurred. Pull to refresh.",
+  "noResults": "No apartments match your criteria.",
+  "filterSheetTitle": "Filter Options",
+  "filterLocation": "Location",
+  "filterPriceRange": "Price Range",
+  "filterSpecifications": "Specifications",
+
+  "favoritesTitle": "My Favorites",
+  "noFavoritesMessage": "Your favorite places will appear here.",
+
+  "resetPasswordSuccess": "Instructions sent successfully!",
+  "unknownError": "An unknown error occurred.",
+
+  "couldNotLaunchMaps": "Could not launch maps",
+
+  "bookingDetailsUnavailable": "Booking details are unavailable",
+  "bookingId": "Booking ID: {id}",
+
+  "bookingRequestSent": "Request Sent!",
+  "bookingRequestSentMessage": "Your booking request has been sent to the owner. You can view its status in your bookings list.",
+  "viewMyBookings": "View My Bookings",
+
+  "status_pending_approval": "Pending Approval",
+  "status_confirmed": "Confirmed",
+  "status_rejected": "Rejected",
+  "status_cancelled": "Cancelled",
+  "status_completed": "Completed",
+
+  "sendBookingRequest": "Send Booking Request"
 }

@@ -1,10 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/generated/app_localizations.dart'; // Import localizations
-import 'package:plproject/providers/user_provider.dart';
-import 'package:plproject/screens/auth/pending_approval_screen.dart';
+import 'package:sakani/generated/app_localizations.dart';
+import 'package:sakani/providers/user_provider.dart';
+import 'package:sakani/screens/auth/pending_approval_screen.dart';
 
 class CompleteProfile extends StatefulWidget {
   final String phone;
@@ -100,6 +101,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
                   controller: _firstNameController,
                   decoration: InputDecoration(hintText: loc.enterFirstName),
                   validator: (val) => val == null || val.isEmpty ? loc.firstNameRequired : null,
+                  // REMOVED inputFormatters to allow all characters
                 ),
                 const SizedBox(height: 15),
                 Text(loc.lastName, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
@@ -107,6 +109,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
                   controller: _lastNameController,
                   decoration: InputDecoration(hintText: loc.enterLastName),
                   validator: (val) => val == null || val.isEmpty ? loc.lastNameRequired : null,
+                  // REMOVED inputFormatters to allow all characters
                 ),
                 const SizedBox(height: 15),
                 Text(loc.dateOfBirth, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
@@ -114,6 +117,7 @@ class _CompleteProfileState extends State<CompleteProfile> {
                   controller: _dobController,
                   decoration: InputDecoration(hintText: loc.dobHint),
                   keyboardType: TextInputType.datetime,
+                  // REMOVED inputFormatters to allow all characters
                 ),
                 const SizedBox(height: 30),
                 _buildImagePicker(theme, loc.personalPhoto, _personalImageFile, () => _pickImage(true)),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/providers/user_provider.dart';
-import 'package:plproject/screens/auth/welcome_auth_screen.dart';
-import 'package:plproject/screens/profile/profile_screen.dart'; // CORRECTED: Navigate to the general profile screen
-import 'package:plproject/generated/app_localizations.dart';
+import 'package:sakani/providers/user_provider.dart';
+import 'package:sakani/screens/auth/welcome_auth_screen.dart';
+import 'package:sakani/screens/profile/profile_screen.dart'; // CORRECTED: Navigate to the general profile screen
+import 'package:sakani/generated/app_localizations.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});

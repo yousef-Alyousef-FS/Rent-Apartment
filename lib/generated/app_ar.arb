@@ -199,5 +199,48 @@
   "priceRange": "نطاق السعر",
   "minRooms": "أدنى عدد غرف",
   "reset": "إعادة تعيين",
-  "applyFilters": "تطبيق الفلاتر"
+  "applyFilters": "تطبيق الفلاتر",
+  
+  "navHome": "الرئيسية",
+  "navExplore": "استكشاف",
+  "navFavorites": "المفضلة",
+  "navMyPlace": "مكاني",
+  "navBookings": "الحجوزات",
+
+  "homeScreenTitle": "الرئيسية",
+  "settingsTooltip": "الإعدادات",
+  "homeScreenMessage": "استكشف الشقق أو قم بإدارة ممتلكاتك باستخدام علامات التبويب أدناه.",
+  "welcomeBack": "أهلاً بعودتك، {name}!",
+
+  "exploreScreenTitle": "استكشف وابحث",
+  "searchPlaceholder": "ابحث عن أماكن بالاسم...",
+  "genericFetchError": "حدث خطأ. اسحب للتحديث.",
+  "noResults": "لا توجد شقق تطابق معاييرك.",
+  "filterSheetTitle": "خيارات الفلترة",
+  "filterLocation": "الموقع",
+  "filterPriceRange": "نطاق السعر",
+  "filterSpecifications": "المواصفات",
+
+  "favoritesTitle": "مفضلتي",
+  "noFavoritesMessage": "الأماكن المفضلة لديك ستظهر هنا.",
+
+  "resetPasswordSuccess": "تم إرسال التعليمات بنجاح!",
+  "unknownError": "حدث خطأ غير معروف.",
+
+  "couldNotLaunchMaps": "تعذر تشغيل الخرائط",
+
+  "bookingDetailsUnavailable": "تفاصيل الحجز غير متوفرة",
+  "bookingId": "معرّف الحجز: {id}",
+
+  "bookingRequestSent": "تم إرسال الطلب!",
+  "bookingRequestSentMessage": "تم إرسال طلب الحجز الخاص بك إلى المالك. يمكنك عرض حالته في قائمة حجوزاتك.",
+  "viewMyBookings": "عرض حجوزاتي",
+  
+  "status_pending_approval": "بانتظار الموافقة",
+  "status_confirmed": "مؤكد",
+  "status_rejected": "مرفوض",
+  "status_cancelled": "ملغي",
+  "status_completed": "مكتمل",
+
+  "sendBookingRequest": "إرسال طلب الحجز"
 }

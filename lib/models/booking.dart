@@ -1,14 +1,14 @@
-import 'package:plproject/models/apartment.dart';
-import 'package:plproject/models/user.dart';
+import 'package:sakani/models/apartment.dart';
+import 'package:sakani/models/user.dart';
 
 class Booking {
   final int id;
   final DateTime checkInDate;
   final DateTime checkOutDate;
   final double totalPrice;
-  final String status; // e.g., 'pending_approval', 'confirmed', 'cancelled', 'completed'
-  final Apartment apartment;
-  final User user;
+  final String status;
+  final Apartment? apartment;
+  final User? user;
 
   Booking({
     required this.id,
@@ -16,22 +16,35 @@ class Booking {
     required this.checkOutDate,
     required this.totalPrice,
     required this.status,
-    required this.apartment,
-    required this.user,
+    this.apartment,
+    this.user,
   });
 
+  // --- REBUILT: To handle multiple response structures from the backend ---
   factory Booking.fromJson(Map<String, dynamic> json) {
+    // Helper for safe parsing of price, which might be a string or a num
+    double safeDoubleParse(dynamic value) {
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0.0;
+      return 0.0;
+    }
+
     return Booking(
       id: json['id'] as int,
-      checkInDate: DateTime.parse(json['check_in_date'] as String),
-      checkOutDate: DateTime.parse(json['check_out_date'] as String),
-      totalPrice: (json['total_price'] as num).toDouble(),
-      status: json['status'] as String,
-      apartment: Apartment.fromJson(json['apartment'] as Map<String, dynamic>),
-      user: User.fromJson(json['user'] as Map<String, dynamic>),
+      // Handle both date formats from the server ('start_date' or 'check_in_date')
+      checkInDate: DateTime.parse((json['start_date'] ?? json['check_in_date']) as String),
+      checkOutDate: DateTime.parse((json['end_date'] ?? json['check_out_date']) as String),
+      totalPrice: safeDoubleParse(json['total_price'] ?? '0.0'),
+      status: (json['status'] ?? 'pending').toString(),
+      // Safely parse nested objects, creating them only if they exist in the JSON
+      apartment: json.containsKey('apartment') && json['apartment'] != null
+          ? Apartment.fromJson(json['apartment'] as Map<String, dynamic>)
+          : null,
+      user: json.containsKey('user') && json['user'] != null
+          ? User.fromJson(json['user'] as Map<String, dynamic>)
+          : null,
     );
   }
-
 
   Map<String, dynamic> toJson() {
     return {
@@ -40,8 +53,8 @@ class Booking {
       'check_out_date': checkOutDate.toIso8601String(),
       'total_price': totalPrice,
       'status': status,
-      'apartment_id': apartment.id, // Usually we only send the ID
-      'user_id': user.id,
+      'apartment_id': apartment?.id,
+      'user_id': user?.id,
     };
   }
 

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/models/booking.dart';
-import 'package:plproject/providers/booking_provider.dart';
-import 'package:plproject/generated/app_localizations.dart';
+import 'package:sakani/models/booking.dart';
+import 'package:sakani/providers/booking_provider.dart';
+import 'package:sakani/generated/app_localizations.dart';
 
 class ManageBookingScreen extends StatefulWidget {
   final Booking booking;
@@ -61,6 +61,8 @@ class _ManageBookingScreenState extends State<ManageBookingScreen> {
     final booking = widget.booking;
     final loc = AppLocalizations.of(context)!;
     final dateFormat = DateFormat('yMd', loc.localeName);
+    
+    final userFullName = '${booking.user?.firstName ?? ''} ${booking.user?.lastName ?? ''}';
 
     return Scaffold(
       appBar: AppBar(
@@ -73,17 +75,16 @@ class _ManageBookingScreenState extends State<ManageBookingScreen> {
           Card(
             child: ListTile(
               leading: CircleAvatar(
-                backgroundImage: booking.user.profileImageUrl != null ? NetworkImage(booking.user.profileImageUrl!) : null,
-                child: booking.user.profileImageUrl == null ? const Icon(Icons.person) : null,
+                backgroundImage: booking.user?.profileImageUrl != null ? NetworkImage(booking.user!.profileImageUrl!) : null,
+                child: booking.user?.profileImageUrl == null ? const Icon(Icons.person) : null,
               ),
-              title: Text('${booking.user.firstName} ${booking.user.lastName}'),
-              // --- CORRECTED: Removed the non-existent 'joined' date and showing phone instead ---
-              subtitle: Text(booking.user.phone),
+              title: Text(userFullName.trim().isNotEmpty ? userFullName.trim() : 'Unknown User'),
+              subtitle: Text(booking.user?.phone ?? 'No phone number'),
             ),
           ),
           const SizedBox(height: 24),
           _buildSectionHeader(theme, loc.bookingDetails),
-          _buildDetailRow(theme, Icons.apartment_outlined, loc.apartment, booking.apartment.title),
+          _buildDetailRow(theme, Icons.apartment_outlined, loc.apartment, booking.apartment?.title ?? loc.bookingDetailsUnavailable),
           _buildDetailRow(theme, Icons.calendar_today_outlined, loc.dates, '${dateFormat.format(booking.checkInDate)} - ${dateFormat.format(booking.checkOutDate)}'),
           _buildDetailRow(theme, Icons.night_shelter_outlined, loc.nights(booking.checkOutDate.difference(booking.checkInDate).inDays), booking.checkOutDate.difference(booking.checkInDate).inDays.toString()),
           _buildDetailRow(theme, Icons.attach_money_outlined, loc.totalPayout, '\$${booking.totalPrice.toStringAsFixed(2)}'),

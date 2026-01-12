@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/providers/user_provider.dart';
-import 'package:plproject/generated/app_localizations.dart';
-import 'package:plproject/screens/auth/welcome_auth_screen.dart';
-import 'package:plproject/screens/profile/change_password_screen.dart';
-import 'package:plproject/screens/profile/edit_profile_screen.dart';
+import 'package:sakani/providers/user_provider.dart';
+import 'package:sakani/generated/app_localizations.dart';
+import 'package:sakani/screens/auth/welcome_auth_screen.dart';
+import 'package:sakani/screens/profile/change_password_screen.dart';
+import 'package:sakani/screens/profile/edit_profile_screen.dart';
 
 class OwnerProfileScreen extends StatelessWidget {
   const OwnerProfileScreen({super.key});

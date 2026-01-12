@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/generated/app_localizations.dart'; // Import localizations
-import 'package:plproject/providers/user_provider.dart';
-import 'package:plproject/screens/auth/auth_gate.dart';
-import 'package:plproject/screens/auth/forgot_password_screen.dart';
-import 'package:plproject/screens/auth/register.dart';
-import 'package:plproject/utils/validators.dart';
+import 'package:sakani/generated/app_localizations.dart';
+import 'package:sakani/providers/user_provider.dart';
+import 'package:sakani/screens/auth/auth_gate.dart';
+import 'package:sakani/screens/auth/forgot_password_screen.dart';
+import 'package:sakani/screens/auth/register.dart';
+import 'package:sakani/utils/validators.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,7 +20,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // --- NEW: State for password visibility ---
   bool _obscurePassword = true;
 
   @override
@@ -72,6 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.phone,
                   validator: (val) => Validators.hasMinLength(val, 10),
                   maxLength: 10,
+                  // REMOVED inputFormatters to allow all characters
                   decoration: InputDecoration(hintText: loc.enterPhoneNumber, counterText: ""),
                 ),
                 const SizedBox(height: 25),
@@ -82,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   obscureText: _obscurePassword,
                   validator: (val) => Validators.hasMinLength(val, 4),
                   maxLength: 20,
-                  // --- UPDATED: Added visibility toggle ---
+                  // REMOVED inputFormatters to allow all characters
                   decoration: InputDecoration(
                     hintText: loc.enterPassword,
                     counterText: "",

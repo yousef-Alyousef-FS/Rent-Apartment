@@ -2,9 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/models/apartment.dart';
-import 'package:plproject/providers/apartment_provider.dart';
-import 'package:plproject/generated/app_localizations.dart'; // Import localizations
+import 'package:sakani/models/apartment.dart';
+import 'package:sakani/providers/apartment_provider.dart';
+import 'package:sakani/generated/app_localizations.dart'; // Import localizations
 
 class AddApartmentScreen extends StatefulWidget {
   const AddApartmentScreen({super.key});
@@ -71,7 +71,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
       governorate: _governorateController.text,
       rooms: int.tryParse(_roomsController.text) ?? 0,
       area: int.tryParse(_areaController.text) ?? 0,
-      imageUrls: [],
+      images: [],
     );
 
     final success = await apartmentProvider.addApartment(newApartment, _selectedImages);

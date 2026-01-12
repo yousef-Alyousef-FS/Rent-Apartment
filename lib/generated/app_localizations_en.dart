@@ -641,4 +641,135 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get applyFilters => 'Apply Filters';
+
+  @override
+  String get adminDashboard => 'Admin Dashboard';
+
+  @override
+  String get confirmDeletion => 'Confirm Deletion';
+
+  @override
+  String areYouSureDeleteUser(Object fullName) {
+    return 'Are you sure you want to permanently delete the user $fullName? This action cannot be undone.';
+  }
+
+  @override
+  String get accept => 'Accept';
+
+  @override
+  String get noPendingUsers => 'No pending users for approval.';
+
+  @override
+  String get allUsers => 'All Users';
+
+  @override
+  String get noUsersFound => 'No users found in the system.';
+
+  @override
+  String get pending => 'Pending';
+
+  @override
+  String get navHome => 'Home';
+
+  @override
+  String get navExplore => 'Explore';
+
+  @override
+  String get navFavorites => 'Favorites';
+
+  @override
+  String get navMyPlace => 'My Place';
+
+  @override
+  String get navBookings => 'Bookings';
+
+  @override
+  String get homeScreenTitle => 'Home';
+
+  @override
+  String get settingsTooltip => 'Settings';
+
+  @override
+  String get homeScreenMessage =>
+      'Explore apartments or manage your properties using the tabs below.';
+
+  @override
+  String welcomeBack(Object name) {
+    return 'Welcome back, $name!';
+  }
+
+  @override
+  String get exploreScreenTitle => 'Explore & Search';
+
+  @override
+  String get searchPlaceholder => 'Search places by title...';
+
+  @override
+  String get genericFetchError => 'An error occurred. Pull to refresh.';
+
+  @override
+  String get noResults => 'No apartments match your criteria.';
+
+  @override
+  String get filterSheetTitle => 'Filter Options';
+
+  @override
+  String get filterLocation => 'Location';
+
+  @override
+  String get filterPriceRange => 'Price Range';
+
+  @override
+  String get filterSpecifications => 'Specifications';
+
+  @override
+  String get favoritesTitle => 'My Favorites';
+
+  @override
+  String get noFavoritesMessage => 'Your favorite places will appear here.';
+
+  @override
+  String get resetPasswordSuccess => 'Instructions sent successfully!';
+
+  @override
+  String get unknownError => 'An unknown error occurred.';
+
+  @override
+  String get couldNotLaunchMaps => 'Could not launch maps';
+
+  @override
+  String get bookingDetailsUnavailable => 'Booking details are unavailable';
+
+  @override
+  String bookingId(Object id) {
+    return 'Booking ID: $id';
+  }
+
+  @override
+  String get bookingRequestSent => 'Request Sent!';
+
+  @override
+  String get bookingRequestSentMessage =>
+      'Your booking request has been sent to the owner. You can view its status in your bookings list.';
+
+  @override
+  String get viewMyBookings => 'View My Bookings';
+
+  @override
+  String get status_pending_approval => 'Pending Approval';
+
+  @override
+  String get status_confirmed => 'Confirmed';
+
+  @override
+  String get status_rejected => 'Rejected';
+
+  @override
+  String get status_cancelled => 'Cancelled';
+
+  @override
+  String get status_completed => 'Completed';
+
+  @override
+  String get sendBookingRequest => 'Send Booking Request';
 }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/models/apartment.dart';
-import 'package:plproject/providers/booking_provider.dart';
-import 'package:plproject/screens/booking/booking_success_screen.dart';
-import 'package:plproject/generated/app_localizations.dart';
+import 'package:sakani/models/apartment.dart';
+import 'package:sakani/providers/booking_provider.dart';
+import 'package:sakani/generated/app_localizations.dart';
+import 'booking_request_sent_screen.dart';
 
 class BookingScreen extends StatefulWidget {
   final Apartment apartment;
@@ -39,22 +39,24 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
-  // --- UPDATED: To handle the returned booking object ---
   Future<void> _confirmBooking() async {
     final bookingProvider = Provider.of<BookingProvider>(context, listen: false);
     final loc = AppLocalizations.of(context)!;
 
-    final newBooking = await bookingProvider.createBooking(
+    final partialBooking = await bookingProvider.createBooking(
       apartmentId: widget.apartment.id,
       checkIn: _checkInDate,
       checkOut: _checkOutDate,
     );
 
     if (mounted) {
-      if (newBooking != null) {
+      if (partialBooking != null) {
+        final enrichedBooking = partialBooking.copyWith(apartment: widget.apartment);
+
         Navigator.of(context).pushAndRemoveUntil(
-          // Pass the new booking to the success screen
-          MaterialPageRoute(builder: (context) => BookingSuccessScreen(booking: newBooking)),
+          MaterialPageRoute(
+            builder: (context) => BookingRequestSentScreen(booking: enrichedBooking),
+          ),
           (route) => route.isFirst,
         );
       } else {
@@ -93,17 +95,15 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  Widget _buildApartmentSummary(BuildContext context, ThemeData theme,
-      Apartment apartment) {
+  Widget _buildApartmentSummary(BuildContext context, ThemeData theme, Apartment apartment) {
     return Row(
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: Image.network(
-            apartment.imageUrls.isNotEmpty ? apartment.imageUrls[0] : '',
+            apartment.images.isNotEmpty ? apartment.images[0].imageUrl : '',
             width: 100, height: 100, fit: BoxFit.cover,
-            errorBuilder: (c, e, s) =>
-                Container(width: 100, height: 100, color: Colors.grey[200]),
+            errorBuilder: (c, e, s) => Container(width: 100, height: 100, color: Colors.grey[200]),
           ),
         ),
         const SizedBox(width: 16),
@@ -115,8 +115,7 @@ class _BookingScreenState extends State<BookingScreen> {
               const SizedBox(height: 4),
               Text(
                 '${apartment.city ?? ''}, ${apartment.governorate ?? ''}',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[600]),
+                style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
               ),
             ],
           ),
@@ -125,8 +124,7 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  Widget _buildDateSelector(BuildContext context, ThemeData theme, String label,
-      DateTime date, VoidCallback onTap) {
+  Widget _buildDateSelector(BuildContext context, ThemeData theme, String label, DateTime date, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -138,10 +136,8 @@ class _BookingScreenState extends State<BookingScreen> {
             Row(
               children: [
                 Text(
-                  "${date.year}-${date.month.toString().padLeft(2, '0')}-${date
-                      .day.toString().padLeft(2, '0')}",
-                  style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold),
+                  "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}",
+                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(width: 8),
                 const Icon(Icons.calendar_month_outlined),
@@ -153,8 +149,7 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  Widget _buildCostSummary(ThemeData theme, AppLocalizations loc,
-      double pricePerNight, int nights, double total) {
+  Widget _buildCostSummary(ThemeData theme, AppLocalizations loc, double pricePerNight, int nights, double total) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -164,8 +159,7 @@ class _BookingScreenState extends State<BookingScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(loc.pricePerNightLabel, style: theme.textTheme.bodyLarge),
-            Text('\$${pricePerNight.toStringAsFixed(0)}',
-                style: theme.textTheme.bodyLarge),
+            Text('\$${pricePerNight.toStringAsFixed(0)}', style: theme.textTheme.bodyLarge),
           ],
         ),
         const SizedBox(height: 8),
@@ -180,11 +174,8 @@ class _BookingScreenState extends State<BookingScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(loc.totalCost, style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold)),
-            Text('\$${total.toStringAsFixed(0)}',
-                style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold, color: theme.primaryColor)),
+            Text(loc.totalCost, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            Text('\$${total.toStringAsFixed(0)}', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: theme.primaryColor)),
           ],
         ),
       ],
@@ -192,21 +183,20 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Widget _buildConfirmButton(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Consumer<BookingProvider>(
         builder: (context, provider, child) {
           return ElevatedButton(
-            onPressed: provider.status == BookingStatusState.Loading
-                ? null
-                : _confirmBooking,
-            style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50)),
+            onPressed: provider.status == BookingStatusState.Loading ? null : _confirmBooking,
+            style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
             child: provider.status == BookingStatusState.Loading
                 ? const CircularProgressIndicator(color: Colors.white)
-                : const Text('Confirm and Pay'),
+                : Text(loc.sendBookingRequest),
           );
         },
       ),
     );
-  }}
+  }
+}

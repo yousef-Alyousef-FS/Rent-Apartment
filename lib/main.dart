@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-// --- CORRECTED: The one true, standard path ---
 
 
-import 'package:plproject/providers/user_provider.dart';
-import 'package:plproject/providers/apartment_provider.dart';
-import 'package:plproject/providers/booking_provider.dart';
-import 'package:plproject/providers/admin_provider.dart';
-import 'package:plproject/providers/theme_provider.dart';
-import 'package:plproject/providers/locale_provider.dart';
-import 'package:plproject/providers/review_provider.dart';
-import 'package:plproject/screens/auth/auth_gate.dart';
-import 'package:plproject/theme/app_theme.dart';
+import 'package:sakani/providers/admin_provider.dart';
+import 'package:sakani/providers/apartment_provider.dart';
+import 'package:sakani/providers/booking_provider.dart';
+import 'package:sakani/providers/locale_provider.dart';
+import 'package:sakani/providers/review_provider.dart';
+import 'package:sakani/providers/theme_provider.dart';
+import 'package:sakani/providers/user_provider.dart';
+import 'package:sakani/screens/auth/auth_gate.dart';
+import 'package:sakani/theme/app_theme.dart';
 
 import 'generated/app_localizations.dart';
 
@@ -48,8 +47,13 @@ class MyApp extends StatelessWidget {
         builder: (context, themeProvider, localeProvider, child) {
           return MaterialApp(
             title: 'PL-Project',
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
+            // CORRECTED: Apply the bilingual font to both themes
+            theme: AppTheme.lightTheme.copyWith(
+              textTheme: AppTheme.lightTheme.textTheme.apply(fontFamily: 'Cairo'),
+            ),
+            darkTheme: AppTheme.darkTheme.copyWith(
+              textTheme: AppTheme.darkTheme.textTheme.apply(fontFamily: 'Cairo'),
+            ),
             themeMode: themeProvider.themeMode,
             debugShowCheckedModeBanner: false,
             

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/models/booking.dart';
-import 'package:plproject/providers/booking_provider.dart';
-import 'package:plproject/screens/owner/manage_booking_screen.dart';
-import 'package:plproject/generated/app_localizations.dart';
-import 'package:plproject/screens/booking/booking_detail_screen.dart';
+import 'package:sakani/models/booking.dart';
+import 'package:sakani/providers/booking_provider.dart';
+import 'package:sakani/screens/owner/manage_booking_screen.dart';
+import 'package:sakani/generated/app_localizations.dart';
+import 'package:sakani/screens/booking/booking_detail_screen.dart';
 
 class OwnerBookingsScreen extends StatefulWidget {
   const OwnerBookingsScreen({super.key});
@@ -84,6 +84,8 @@ class _OwnerBookingsScreenState extends State<OwnerBookingsScreen> {
   Widget _buildBookingCard(BuildContext context, Booking booking, bool isRequest) {
     final loc = AppLocalizations.of(context)!;
     final dateFormat = DateFormat('yMd', loc.localeName);
+    
+    final userFullName = '${booking.user?.firstName ?? ''} ${booking.user?.lastName ?? ''}';
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -91,14 +93,13 @@ class _OwnerBookingsScreenState extends State<OwnerBookingsScreen> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
           radius: 28,
-          backgroundImage: booking.user.profileImageUrl != null ? NetworkImage(booking.user.profileImageUrl!) : null,
-          child: booking.user.profileImageUrl == null ? const Icon(Icons.person) : null,
+          backgroundImage: booking.user?.profileImageUrl != null ? NetworkImage(booking.user!.profileImageUrl!) : null,
+          child: booking.user?.profileImageUrl == null ? const Icon(Icons.person) : null,
         ),
-        title: Text('${booking.user.firstName} ${booking.user.lastName}', style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text('${booking.apartment.title}\n${loc.dates}: ${dateFormat.format(booking.checkInDate)} - ${dateFormat.format(booking.checkOutDate)}'),
+        title: Text(userFullName.trim().isNotEmpty ? userFullName.trim() : 'Unknown User', style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text('${booking.apartment?.title ?? loc.bookingDetailsUnavailable}\n${loc.dates}: ${dateFormat.format(booking.checkInDate)} - ${dateFormat.format(booking.checkOutDate)}'),
         trailing: isRequest ? const Icon(Icons.chevron_right) : null,
         isThreeLine: true,
-        // --- UPDATED: All cards are now tappable ---
         onTap: () {
           if (isRequest) {
             Navigator.of(context).push(MaterialPageRoute(builder: (context) => ManageBookingScreen(booking: booking)));

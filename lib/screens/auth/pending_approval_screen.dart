@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:plproject/generated/app_localizations.dart'; // Import localizations
-import 'package:plproject/screens/auth/welcome_auth_screen.dart';
+import 'package:sakani/generated/app_localizations.dart'; // Import localizations
+import 'package:sakani/screens/auth/welcome_auth_screen.dart';
 
 class PendingApprovalScreen extends StatelessWidget {
   const PendingApprovalScreen({super.key});

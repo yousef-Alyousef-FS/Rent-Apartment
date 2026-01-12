@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:plproject/models/booking.dart';
-import 'package:plproject/models/apartment.dart';
-import 'package:plproject/providers/booking_provider.dart';
-import 'package:plproject/generated/app_localizations.dart';
+import 'package:sakani/models/booking.dart';
+import 'package:sakani/models/apartment.dart';
+import 'package:sakani/providers/booking_provider.dart';
+import 'package:sakani/generated/app_localizations.dart';
 
 class BookingDetailScreen extends StatefulWidget {
   final Booking booking;
@@ -18,6 +18,23 @@ class BookingDetailScreen extends StatefulWidget {
 
 class _BookingDetailScreenState extends State<BookingDetailScreen> {
   bool _isCancelling = false;
+
+  String _getTranslatedStatus(AppLocalizations loc, String status) {
+    switch (status) {
+      case 'pending_approval':
+        return loc.status_pending_approval;
+      case 'confirmed':
+        return loc.status_confirmed;
+      case 'rejected':
+        return loc.status_rejected;
+      case 'cancelled':
+        return loc.status_cancelled;
+      case 'completed':
+        return loc.status_completed;
+      default:
+        return status;
+    }
+  }
 
   Future<void> _getDirections(BuildContext context, Apartment apartment) async {
     final loc = AppLocalizations.of(context)!;
@@ -37,7 +54,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
       await launchUrl(uri);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not launch maps')),
+        SnackBar(content: Text(loc.couldNotLaunchMaps)),
       );
     }
   }
@@ -93,8 +110,19 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final loc = AppLocalizations.of(context)!;
-    final dateFormat = DateFormat('MMM d, yyyy');
+    final dateFormat = DateFormat('MMM d, yyyy', loc.localeName);
     final booking = widget.booking;
+
+    if (booking.apartment == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text(loc.bookingDetails)),
+        body: Center(
+          child: Text(loc.bookingDetailsUnavailable),
+        ),
+      );
+    }
+
+    final apartment = booking.apartment!;
     final checkInDate = booking.checkInDate;
     final checkOutDate = booking.checkOutDate;
     final numberOfNights = checkOutDate.difference(checkInDate).inDays;
@@ -107,8 +135,9 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
       body: ListView(
         children: [
           Image.network(
-            booking.apartment.imageUrls.isNotEmpty ? booking.apartment.imageUrls[0] : '',
-            height: 200, fit: BoxFit.cover,
+            apartment.images.isNotEmpty ? apartment.images[0].imageUrl : '',
+            height: 200,
+            fit: BoxFit.cover,
             errorBuilder: (ctx, err, st) => Container(height: 200, color: Colors.grey[300], child: const Center(child: Icon(Icons.apartment, size: 80, color: Colors.grey))),
           ),
           Padding(
@@ -116,15 +145,15 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(booking.apartment.title, style: theme.textTheme.headlineSmall),
+                Text(apartment.title, style: theme.textTheme.headlineSmall),
                 const SizedBox(height: 8),
-                if (booking.apartment.city != null && booking.apartment.governorate != null)
-                  Text('${booking.apartment.city}, ${booking.apartment.governorate}', style: theme.textTheme.titleMedium?.copyWith(color: Colors.grey[600])),
+                if (apartment.city != null && apartment.governorate != null)
+                  Text('${apartment.city}, ${apartment.governorate}', style: theme.textTheme.titleMedium?.copyWith(color: Colors.grey[600])),
                 const Divider(height: 32),
 
+                _buildDetailRow(theme, Icons.info_outline, loc.status, _getTranslatedStatus(loc, booking.status)),
                 _buildDetailRow(theme, Icons.calendar_today_outlined, loc.dates, '${dateFormat.format(checkInDate)} - ${dateFormat.format(checkOutDate)}'),
                 _buildDetailRow(theme, Icons.night_shelter_outlined, loc.nights(numberOfNights), numberOfNights.toString()),
-                _buildDetailRow(theme, Icons.people_outline, loc.guests, '1'),
                 const Divider(height: 32),
 
                 Text(loc.priceDetails, style: theme.textTheme.headlineSmall),
@@ -137,22 +166,24 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
 
                 Row(
                   children: [
+                    if (booking.apartment != null)
                     Expanded(
                       child: OutlinedButton.icon(
                         icon: const Icon(Icons.directions),
                         label: Text(loc.getDirections),
-                        onPressed: () => _getDirections(context, booking.apartment),
+                        onPressed: () => _getDirections(context, apartment),
                       ),
                     ),
                     const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        icon: _isCancelling ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.cancel_outlined),
-                        label: Text(loc.cancelBooking),
-                        onPressed: _isCancelling ? null : () => _showCancelConfirmationDialog(context, booking),
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red[700]),
+                    if (booking.status == 'confirmed' || booking.status == 'pending_approval')
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          icon: _isCancelling ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.cancel_outlined),
+                          label: Text(loc.cancelBooking),
+                          onPressed: _isCancelling ? null : () => _showCancelConfirmationDialog(context, booking),
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red[700]),
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ],

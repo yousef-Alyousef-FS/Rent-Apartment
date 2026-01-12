@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:plproject/models/apartment.dart';
-import 'package:plproject/providers/user_provider.dart';
-import 'package:plproject/screens/apartments/apartment_details_screen.dart';
-import 'package:plproject/generated/app_localizations.dart';
+import 'package:sakani/models/apartment.dart';
+import 'package:sakani/providers/user_provider.dart';
+import 'package:sakani/screens/apartments/apartment_details_screen.dart';
+import 'package:sakani/generated/app_localizations.dart';
 
 class ApartmentCard extends StatelessWidget {
   final Apartment apartment;
@@ -23,14 +23,14 @@ class ApartmentCard extends StatelessWidget {
           ));
         },
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // CORRECTED TYPO
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Stack(
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
                   child: Image.network(
-                      apartment.imageUrls.isNotEmpty ? apartment.imageUrls[0] : '',
+                      apartment.images.isNotEmpty ? apartment.images[0].imageUrl : '', // CORRECTED
                       height: 200,
                       width: double.infinity,
                       fit: BoxFit.cover,

@@ -73,7 +73,7 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(loc.myBookings),
-          bottom: TabBar(tabs: [Tab(text: loc.upcoming), Tab(text: loc.completed), Tab(text: loc.cancelled)]),
+          bottom: TabBar(tabs: [Tab(text: loc.pending), Tab(text: loc.completed), Tab(text: loc.cancelled)]),
         ),
         body: RefreshIndicator(
           onRefresh: () => _fetchBookings(forceRefresh: true),
@@ -86,14 +86,13 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
                 return Center(child: Text(loc.errorOccurred(provider.errorMessage ?? '...')));
               }
 
-              // Corrected the comparison to be safe and explicit
-              final upcoming = provider.myBookings.where((b) => b.status == 'confirmed' || b.status == 'pending_approval').toList();
-              final completed = provider.myBookings.where((b) => b.status == 'completed').toList();
+              final pending = provider.myBookings.where((b) => b.status == 'pending_approval').toList();
+              final completed = provider.myBookings.where((b) => b.status == 'completed' || b.status == 'confirmed').toList();
               final cancelled = provider.myBookings.where((b) => b.status == 'cancelled' || b.status == 'rejected').toList();
 
               return TabBarView(
                 children: [
-                  _buildBookingsList(upcoming, loc.noUpcomingBookings, 'upcoming'),
+                  _buildBookingsList(pending, loc.noNewRequests, 'pending'),
                   _buildBookingsList(completed, loc.noCompletedBookings, 'completed'),
                   _buildBookingsList(cancelled, loc.noCancelledBookings, null),
                 ],
@@ -181,7 +180,7 @@ class _BookingsListScreenState extends State<BookingsListScreen> {
   }
 
   List<Widget> _buildActionButtons(BuildContext context, Booking booking, String actionsType, AppLocalizations loc) {
-    if (actionsType == 'upcoming') {
+    if (actionsType == 'pending') {
       return [
         TextButton(
           onPressed: booking.apartment != null ? () {

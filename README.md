@@ -1,16 +1,14 @@
-# plproject
+A full rental management mobile application built using Flutter and connected to a custom backend API.  
+Implemented authentication, apartment management, tenant data handling, and rental operations through structured API endpoints. Designed clean and responsive UI components, applied modular architecture, and ensured smooth data flow between the mobile frontend and backend services. Demonstrated strong skills in API integration, JSON handling, state management, and building production‑ready mobile features.
 
-A new Flutter project.
+Key Features:
 
-## Getting Started
+    Full backend integration (authentication, CRUD, structured API endpoints)
 
-This project is a starting point for a Flutter application.
+    Clean and responsive UI with reusable widgets
 
-A few resources to get you started if this is your first Flutter project:
+    JSON serialization & REST communication
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+    Modular architecture for scalable feature development
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+    Real‑world workflow: apartments, tenants, rental details
